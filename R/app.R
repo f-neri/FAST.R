@@ -14,6 +14,7 @@ FASTR <- function(...) { # app needs to be wrapped in function to be used as pac
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(
+  shinyjs::useShinyjs(), # enables shinyjs functions
   
   titlePanel(
     h1(strong("FAST-R"), align = "center")
@@ -24,8 +25,7 @@ ui <- fluidPage(
     column(12,
            h1(a(href = "link", "FAST"), " Data Analysis & Visualization App", align = "center"),
            br(),
-           br(),
-           img(src = "placeholder.png", style = "display: block; margin-left: auto; margin-right: auto;") # style is for centering
+           br()
            )
   ),
   
@@ -66,7 +66,7 @@ ui <- fluidPage(
     column(3, offset = 3,
            br(),
            br(),
-           downloadButton("download_metadata", label = "Download metadata plate template"),
+           downloadButton("download_metadata", label = "Download plate metadata template"),
            br(),
            br()
            ),
@@ -119,28 +119,22 @@ server <- function(input, output, session) {
   
   # observe: input IAoutput
   observeEvent(input$Image_Analyst_output, {
-    message("Image Analyst output file: ", input$Image_Analyst_output$name, "; length: ", length(input$Image_Analyst_output$name))
+    message("Image Analyst output file: ", input$Image_Analyst_output$name, ";\nFiles uploaded: ", length(input$Image_Analyst_output$name))
   })
   
-  # metadata plate template names
-  plate_template_names <- reactive({
-    
+  # toggle download_metadata after data upload
+  observe({
+    shinyjs::toggleState(id = "download_metadata", condition = input$Image_Analyst_output)
   })
   
-  # download metadata template 
+  # download plate metadata template 
   output$download_metadata <- downloadHandler(
     filename = function() {
-      name <- if (is.null(input$Image_Analyst_output$name)) {
-        "metadata-plate-template"
-      } else {
-        input$Image_Analyst_output$name %>%
-          str_replace(., pattern = ".xlsx", replacement = "_metadata")
-      }
-      
-      paste0(name, ".tsv")
+      input$Image_Analyst_output$name %>%
+          stringr::str_replace_all(., pattern = ".xlsx", replacement = "_metadata.tsv")
     },
     content = function(file) {
-      url <- "https://raw.githubusercontent.com/f-neri/FAST-R_2.0/main/plate-metadata.tsv"
+      url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/plate-metadata.tsv"
       
       download.file(url, destfile = file, method = "auto")
     }
@@ -148,7 +142,7 @@ server <- function(input, output, session) {
   
   # observe: input adjusted metadata
   observeEvent(input$plate_template_name, {
-    message("adjusted metadata file: ", input$plate_template_name$name)
+    message("Adjusted plate metadata file: ", input$plate_template_name$name, ";\nFiles uploaded: ", length(input$plate_template_name$name))
   })
   
 }
