@@ -11,6 +11,8 @@
 #' @examples
 FASTR <- function(...) { # app needs to be wrapped in function to be used as package
   
+  template_url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/plate-metadata.tsv"
+  
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(
@@ -119,7 +121,7 @@ server <- function(input, output, session) {
   
   # observe: input IAoutput
   observeEvent(input$Image_Analyst_output, {
-    message("Image Analyst output file: ", input$Image_Analyst_output$name, ";\nFiles uploaded: ", length(input$Image_Analyst_output$name))
+    message("Image Analyst output file: ", input$Image_Analyst_output$name, ";\nFiles uploaded: ", length(input$Image_Analyst_output$name), "\n", str(input$Image_Analyst_output$name))
   })
   
   # toggle download_metadata after data upload
@@ -127,17 +129,50 @@ server <- function(input, output, session) {
     shinyjs::toggleState(id = "download_metadata", condition = input$Image_Analyst_output)
   })
   
-  # download plate metadata template 
+  # download plate metadata template
+  template_names <- reactive({
+    input$Image_Analyst_output$name %>%
+      stringr::str_replace_all(., pattern = ".xlsx", replacement = "_metadata.tsv")
+  })
+  
   output$download_metadata <- downloadHandler(
-    filename = function() {
-      input$Image_Analyst_output$name %>%
-          stringr::str_replace_all(., pattern = ".xlsx", replacement = "_metadata.tsv")
-    },
-    content = function(file) {
-      url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/plate-metadata.tsv"
+    filename = function() if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
+      template_names()
       
-      download.file(url, destfile = file, method = "auto")
-    }
+    } else { # multiple IAoutput and metadata files
+      
+      paste0("plate_metadata_templates_", Sys.Date(), ".zip")
+    },
+    
+    content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
+      download.file(template_url, destfile = file, method = "auto")
+      message("Downloading metadata plate template: ", template_names(),"\n")
+      
+    } else { # multiple IAoutput and metadata files
+      
+      temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
+      dir.create(temp_directory)
+      
+      file_paths <- vector("character", length = length(input$Image_Analyst_output$name))
+      
+      message("names :", seq_along(length(input$Image_Analyst_output$name)), "from input\n")
+      message("names :", seq_along(length(input$Image_Analyst_output$name)), "from template_names\n")
+      
+      for (i in seq_along(length(input$Image_Analyst_output$name))) {
+        file_paths[i] <- file.path(temp_directory, template_names()[i])
+        
+        download.file(template_url, destfile = file_paths[i], method = "auto")
+        message("Downloading metadata plate template: ", template_names()[i],"\n")
+      }
+      
+      zip::zip(
+        zipfile = file,
+        files = dir(temp_directory),
+        root = temp_directory
+      )
+      
+    },
+    contentType = "application/zip"
   )
   
   # observe: input adjusted metadata
