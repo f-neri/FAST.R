@@ -55,11 +55,11 @@ ui <- fluidPage(
   # upload IAoutput
   fluidRow(
     column(3, offset = 3,
-           fileInput("Image_Analyst_output", label = "Upload Image Analyst output file", multiple = TRUE, accept = ".xlsx")
+           fileInput("Image_Analyst_output", label = "Image Analyst output file", multiple = TRUE, accept = ".xlsx")
            ),
     column(5, offset = 0,
            br(),
-           p("Updaload the ", strong("Image Analyst output file"))
+           p("Updaload the ", strong("Image Analyst output file"), " containing your single-cell measurements")
            )
   ),
   
@@ -68,18 +68,18 @@ ui <- fluidPage(
     column(3, offset = 3,
            br(),
            br(),
-           downloadButton("download_metadata", label = "Download plate metadata template"),
+           downloadButton("download_metadata", label = "Plate metadata template"),
            br(),
            br()
            ),
     column(5, offset = 0,
-           p("Download the ", strong("metadata plate template *.tsv file"), ", and modify it appropriately to add your metadata:"),
-           p("○ In the 1st plate template (\"Condition\"), ", strong("add labels")," to distinguish senescence-inducing and control
-             conditions (e.g. IR & CTL). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
-             (e.g. IR_background & CTL_background)."),
-           p("○ ", em("Optional"),": if your experiment involves up to two additional variables, label them in the two additional plate
-             templates (e.g., different culturing conditions or varying concentrations of a drug treatment, etc.). Replace the
-             placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names."),
+           p("Download the ", strong("plate metadata template *.tsv file"), ", and modify it appropriately to add your metadata:"),
+           p("○ In the 1st plate template (\"Condition\"), ", strong("add labels")," to distinguish your different experimental conditions
+           (e.g. IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
+             (e.g. IR_background & Mock IR_background)."),
+           p("○ ", em("Optional"),": labels for up to two additional variables can be entered in the two additional plate
+             templates (e.g., different culturing media or varying concentrations of a drug treatment, etc.). Replace the
+             placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g. \"Medium\" or \"DrugA (nM)\")."),
            br()
            )
   ),
@@ -87,7 +87,7 @@ ui <- fluidPage(
   # updload adjusted metadata
   fluidRow(
     column(3, offset = 3,
-           fileInput("plate_template_name", label = "Upload adjusted metadata file", multiple = TRUE,  accept = ".tsv"),
+           fileInput("plate_metadata", label = "Adjusted metadata file", multiple = TRUE,  accept = ".tsv"),
     ),
     column(5, offset = 0,
            br(),
@@ -98,8 +98,16 @@ ui <- fluidPage(
   # run analysis button
   fluidRow(
     column(12, align = "center",
-           actionButton("run_button", label = "Run Analysis")
+           actionButton("button_analysis", label = "Run Analysis")
            )
+  ),
+  
+  # show analysis messages
+  fluidRow(
+    column(12, align = "center",
+           br(),
+           textOutput("analysis_message")
+    )
   ),
   
   # show tidied single cell & analysis report tables
@@ -121,7 +129,7 @@ server <- function(input, output, session) {
   
   # observe: input IAoutput
   observeEvent(input$Image_Analyst_output, {
-    message("Image Analyst output file: ", input$Image_Analyst_output$name, ";\nFiles uploaded: ", length(input$Image_Analyst_output$name), "\n", str(input$Image_Analyst_output$name))
+    message("\nImage Analyst output file:\n", input$Image_Analyst_output$name, ";\n\nFiles uploaded: ", length(input$Image_Analyst_output$name), "\n")
   })
   
   # toggle download_metadata after data upload
@@ -146,7 +154,7 @@ server <- function(input, output, session) {
     
     content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
       download.file(template_url, destfile = file, method = "auto")
-      message("Downloading metadata plate template: ", template_names(),"\n")
+      message("Downloaded plate metadata template: ", template_names(),"\n")
       
     } else { # multiple IAoutput and metadata files
       
@@ -155,14 +163,12 @@ server <- function(input, output, session) {
       
       file_paths <- vector("character", length = length(input$Image_Analyst_output$name))
       
-      message("names :", seq_along(length(input$Image_Analyst_output$name)), "from input\n")
-      message("names :", seq_along(length(input$Image_Analyst_output$name)), "from template_names\n")
-      
-      for (i in seq_along(length(input$Image_Analyst_output$name))) {
+      for (i in seq_along(input$Image_Analyst_output$name)) {
         file_paths[i] <- file.path(temp_directory, template_names()[i])
-        
-        download.file(template_url, destfile = file_paths[i], method = "auto")
-        message("Downloading metadata plate template: ", template_names()[i],"\n")
+        suppressMessages(
+          download.file(template_url, destfile = file_paths[i], method = "auto")
+        )
+        message("Downloaded plate metadata template: ", template_names()[i],"\n")
       }
       
       zip::zip(
@@ -177,11 +183,55 @@ server <- function(input, output, session) {
   
   # observe: input adjusted metadata
   observeEvent(input$plate_template_name, {
-    message("Adjusted plate metadata file: ", input$plate_template_name$name, ";\nFiles uploaded: ", length(input$plate_template_name$name))
+    message("\nAdjusted plate metadata file(s):\n", input$plate_template_name$name, ";\n")
+    message("File(s) uploaded: ", length(input$plate_template_name$name), "\n")
   })
   
+  # Run data analysis
+  
+  ## tidy IAoutput and merge with metadata
+  tidied_IAoutput <- reactive({
+    notification <- showNotification("Analysing data...", duration = NULL, closeButton = FALSE) # shows a permanent notification
+    on.exit(removeNotification(notification), add = TRUE)
+    
+    Sys.sleep(2) # pretend this is long calculation
+    
+    if (length(input$Image_Analyst_output$name) > 1) {
+      validate(
+        "test error tidied_IAoutput"
+      )
+    }
+  }) %>%
+    bindCache(input$Image_Analyst_output$datapath, input$plate_metadata$datapath) %>%
+    bindEvent(input$button_analysis)
+  
+  ## perform calculations and generate analysis_report table
+  analysis_report <- reactive({
+    
+    tidied_IAoutput() # start point for analysis report table
+    
+    Sys.sleep(1) # pretend this is long calculation
+    
+    if (length(input$Image_Analyst_output$name) < 1) {
+      validate(
+        "test error analysis_report"
+      )
+    }
+    
+  }) %>%
+    bindEvent(input$button_analysis)
+  
+  
+  
+  # Print data analysis message
+  output$analysis_message <- renderText({
+    tidied_IAoutput()
+    analysis_report()
+    c("Data analysis was successful!!")
+    }) %>%
+    bindEvent(input$button_analysis)
 }
 
-shinyApp(ui, server, options = list(launch.browser = TRUE))
+shinyApp(ui, server) # , options = list(launch.browser = TRUE) -> browser lunch
 
 }
