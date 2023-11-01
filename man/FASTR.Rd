@@ -4,10 +4,7 @@
 \alias{FASTR}
 \title{FASTR}
 \usage{
-FASTR(...)
-}
-\arguments{
-\item{...}{}
+FASTR()
 }
 \description{
 FASTR
