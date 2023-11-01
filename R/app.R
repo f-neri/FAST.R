@@ -3,15 +3,23 @@
 #'
 #' @import shiny
 #' @import magrittr
-#' @param ... 
-#'
 #' @return
 #' @export
 #'
 #' @examples
-FASTR <- function(...) { # app needs to be wrapped in function to be used as package
+
+FASTR <- function() { # app needs to be wrapped in function to be used as package
   
-  template_url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/plate-metadata.tsv"
+  template_url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/inst/extdata/plate-metadata.tsv"
+  
+  . <- NULL # workaround to prevent R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
+  
+  function(step_message = "") {
+    percentage_progress <- percentage_progress + 1/tot_steps*100 
+    incProgress(1,
+                detail = str_c("Progress: ", round(percentage_progress, digits = 0), "%\n",step_message))
+    percentage_progress
+  }
   
 # UI ----------------------------------------------------------------------
 
@@ -22,11 +30,10 @@ ui <- fluidPage(
     h1(strong("FAST-R"), align = "center")
     ),
   
-  # Title + image
+  # Title + paper link
   fluidRow(
     column(12,
-           h1(a(href = "link", "FAST"), " Data Analysis & Visualization App", align = "center"),
-           br(),
+           h1("FAST Data Analysis & Visualization App", align = "center"), # add a(href = "link", "FAST"), and include link to paper once in place
            br()
            )
   ),
@@ -34,7 +41,6 @@ ui <- fluidPage(
   # Data analysis header
   fluidRow(
     column(12,
-           br(),
            br(),
            h2("Data Analysis", align = "center"),
            br()
@@ -54,7 +60,7 @@ ui <- fluidPage(
   
   # upload IAoutput
   fluidRow(
-    column(3, offset = 3,
+    column(3, offset = 3, align = "center",
            fileInput("Image_Analyst_output", label = "Image Analyst output file", multiple = TRUE, accept = ".xlsx")
            ),
     column(5, offset = 0,
@@ -65,7 +71,7 @@ ui <- fluidPage(
   
   # download metadata template
   fluidRow(
-    column(3, offset = 3,
+    column(3, offset = 3, align = "center",
            br(),
            br(),
            downloadButton("download_metadata", label = "Plate metadata template"),
@@ -74,10 +80,10 @@ ui <- fluidPage(
            ),
     column(5, offset = 0,
            p("Download the ", strong("plate metadata template *.tsv file"), ", and modify it appropriately to add your metadata:"),
-           p("○ In the 1st plate template (\"Condition\"), ", strong("add labels")," to distinguish your different experimental conditions
+           p("- In the 1st plate template (\"Condition\"), ", strong("add labels")," to distinguish your different experimental conditions
            (e.g. IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
              (e.g. IR_background & Mock IR_background)."),
-           p("○ ", em("Optional"),": labels for up to two additional variables can be entered in the two additional plate
+           p("- ", em("Optional"),": labels for up to two additional variables can be entered in the two additional plate
              templates (e.g., different culturing media or varying concentrations of a drug treatment, etc.). Replace the
              placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g. \"Medium\" or \"DrugA (nM)\")."),
            br()
@@ -86,18 +92,38 @@ ui <- fluidPage(
   
   # updload adjusted metadata
   fluidRow(
-    column(3, offset = 3,
-           fileInput("plate_metadata", label = "Adjusted metadata file", multiple = TRUE,  accept = ".tsv"),
+    column(3, offset = 3, align = "center",
+           fileInput("plate_metadata", label = "Adjusted metadata file",
+                     multiple = TRUE,  accept = ".tsv"),
     ),
     column(5, offset = 0,
            br(),
-           p("Updaload the ", strong("adjusted metadata file"))
+           p("Updaload the ", strong("adjusted metadata file")),
+           br()
+    )
+  ),
+  
+  # adjust background_threhsold percentile value
+  fluidRow(
+    column(3, offset = 3, align = "center",
+           numericInput("background_threshold", label = "Background threshold",
+                        value = 0.95, min = 0.9, max = 1.0, step = 0.01, width = "150px"),
+           helpText("Recommended value: 0.95")
+    ),
+    column(5, offset = 0,
+           br(),
+           p(em("Optional"), "Adjust the ", strong("Background threshold"), ".
+           This is the percentile value to be used when calculating the staining
+             threshold in Background wells"),
+           br()
     )
   ),
   
   # run analysis button
   fluidRow(
     column(12, align = "center",
+           br(),
+           br(),
            actionButton("button_analysis", label = "Run Analysis")
            )
   ),
@@ -153,7 +179,7 @@ server <- function(input, output, session) {
     },
     
     content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
-      download.file(template_url, destfile = file, method = "auto")
+      utils::download.file(template_url, destfile = file, method = "auto")
       message("Downloaded plate metadata template: ", template_names(),"\n")
       
     } else { # multiple IAoutput and metadata files
@@ -166,7 +192,7 @@ server <- function(input, output, session) {
       for (i in seq_along(input$Image_Analyst_output$name)) {
         file_paths[i] <- file.path(temp_directory, template_names()[i])
         suppressMessages(
-          download.file(template_url, destfile = file_paths[i], method = "auto")
+          utils::download.file(template_url, destfile = file_paths[i], method = "auto")
         )
         message("Downloaded plate metadata template: ", template_names()[i],"\n")
       }
@@ -189,39 +215,46 @@ server <- function(input, output, session) {
   
   # Run data analysis
   
-  ## tidy IAoutput and merge with metadata
-  tidied_IAoutput <- reactive({
-    notification <- showNotification("Analysing data...", duration = NULL, closeButton = FALSE) # shows a permanent notification
-    on.exit(removeNotification(notification), add = TRUE)
+  withProgress({ # progress bar
     
-    Sys.sleep(2) # pretend this is long calculation
     
-    if (length(input$Image_Analyst_output$name) > 1) {
-      validate(
-        "test error tidied_IAoutput"
-      )
-    }
-  }) %>%
-    bindCache(input$Image_Analyst_output$datapath, input$plate_metadata$datapath) %>%
-    bindEvent(input$button_analysis)
-  
-  ## perform calculations and generate analysis_report table
-  analysis_report <- reactive({
     
-    tidied_IAoutput() # start point for analysis report table
+    ## tidy IAoutput and merge with metadata
+    tidied_IAoutput <- reactive({
+      notification <- showNotification("Analysing data...", duration = NULL, closeButton = FALSE) # shows a permanent notification
+      on.exit(removeNotification(notification), add = TRUE) # removes notification once expression is complted/terminated
+      
+      Sys.sleep(1) # pretend this is long calculation
+      
+      if (length(input$Image_Analyst_output$name) > 1) {
+        validate(
+          "test error tidied_IAoutput"
+        )
+      }
+    }) %>%
+      bindCache(input$Image_Analyst_output$datapath,
+                input$plate_metadata$datapath,
+                input$background_threshold) %>%
+      bindEvent(input$button_analysis)
     
-    Sys.sleep(1) # pretend this is long calculation
+    ## perform calculations and generate analysis_report table
+    analysis_report <- reactive({
+      
+      tidied_IAoutput() # start point for analysis report table
+      input$background_threshold
+      
+      Sys.sleep(1) # pretend this is long calculation
+      
+      if (length(input$Image_Analyst_output$name) < 1) {
+        validate(
+          "test error analysis_report"
+        )
+      }
+      
+    }) %>%
+      bindEvent(input$button_analysis)
     
-    if (length(input$Image_Analyst_output$name) < 1) {
-      validate(
-        "test error analysis_report"
-      )
-    }
-    
-  }) %>%
-    bindEvent(input$button_analysis)
-  
-  
+  })
   
   # Print data analysis message
   output$analysis_message <- renderText({
