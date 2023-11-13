@@ -82,6 +82,8 @@ data_analysisServer <- function(id) {
       shinyjs::disable("button_analysis")
       updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin"))
       
+      on.exit({ enable_button_analysis() })
+      
       ## check that an equal number of IAoutput and metadata files have been uploaded
       if (length(input$Image_Analyst_output$name) != length(input$plate_metadata$name)) {
         enable_button_analysis()
@@ -100,21 +102,21 @@ data_analysisServer <- function(id) {
       ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
       
       IAoutput_files <- tibble::tibble(
-        name = input$Image_Analyst_output$name,
+        IAoutput_name = input$Image_Analyst_output$name,
         IAoutput_datapath = input$Image_Analyst_output$datapath
       ) %>%
-        dplyr::arrange(name)
+        dplyr::arrange(IAoutput_name)
       
       plate_metadata_files <- tibble::tibble(
-        name = input$plate_metadata$name,
+        metadata_name = input$plate_metadata$name,
         metadata_datapath = input$plate_metadata$datapath
       ) %>%
-        dplyr::arrange(name)
+        dplyr::arrange(metadata_name)
       
-      plate_metadata_files$name <- plate_metadata_files$name %>%
+      plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
         gsub(pattern = "_metadata.csv", replacement = ".xlsx", .)
       
-      if ( any(IAoutput_files$name != plate_metadata_files$name) ) {
+      if ( any(IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name) ) {
         enable_button_analysis()
         validate(
           paste0(
@@ -123,8 +125,8 @@ data_analysisServer <- function(id) {
           For each Image Analyst output file uploaded, an adjusted plate metadata file with the same name + \"_metadata\" must also be uploaded.
           Verify that each Image_Analyst_output.xlsx file has a corresponding Image_Analyst_output_metadata.csv file.
           
-          uploaded Image Analyst output file: ", input$Image_Analyst_output$name[IAoutput_files$name != plate_metadata_files$name],"
-          uploaded Adjusted metadata file: ", input$plate_metadata$name[IAoutput_files$name != plate_metadata_files$name]
+          uploaded Image Analyst output file: ", IAoutput_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name],"
+          uploaded Adjusted metadata file: ", plate_metadata_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]
           )
         )
       }
@@ -133,15 +135,37 @@ data_analysisServer <- function(id) {
       
       Input_files <- dplyr::left_join(IAoutput_files, plate_metadata_files) %>%
         dplyr::mutate(IAoutput_df = NA,
-                      plate_metadata_df = NA)
+                      metadata_df = NA)
       
       for (i in seq_len(nrow(Input_files))) {
         
         
         Input_files$IAoutput_df[i] <- readxl::read_xlsx(Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
-        Input_files$plate_metadata_df[i] <- plater::read_plate(Input_files$plate_metadata_df[i],
+        Input_files$metadata_df[i] <- plater::read_plate(Input_files$metadata_df[i],
                                                                well_ids_column = "well",    # name to give column of well IDs
-                                                               sep = "\t")                  # separator used in the csv file
+                                                               sep = ",")                  # separator used in the csv file
+        
+        number_wells_IAoutput <- Input_files$IAoutput_df[[i]] %>% .$well %>% unique() %>% length()
+        number_wells_metadata <- Input_files$metadata_df[[i]] %>% .$well %>% unique() %>% length()
+        
+        if (number_wells_IAoutput != number_wells_metadata) {
+          beep(1)
+          validate(
+            paste0(
+          "ERROR: Mismatch in well number between Image Analyst output file and adjusted plate metadata
+          
+          Ensure that each well present in the Image Analyst output file has a corresponding label in the Plate Metadata file
+          
+          
+          
+          Image Analyst output file: ", Input_files$name[i], "
+          Well number: ", number_wells_IAoutput,"
+          
+          Adjusted plate metadata file: ", Input_files$name[i], "
+          Well number: ", number_wells_metadata
+            )
+          )
+        }
         
       }
       
