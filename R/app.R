@@ -10,19 +10,22 @@
 
 FASTR <- function() { # app needs to be wrapped in function to be used as package
   
-  . <- NULL # workaround to prevent R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
-  
-  function(step_message = "") {
-    percentage_progress <- percentage_progress + 1/tot_steps*100 
-    incProgress(1,
-                detail = str_c("Progress: ", round(percentage_progress, digits = 0), "%\n",step_message))
-    percentage_progress
-  }
+  . <- NULL # workaround to prevent an R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
   
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(
   shinyjs::useShinyjs(), # enables shinyjs functions
+  waiter::use_waitress(), # enables waiter functions
+  
+  tags$head( # changes CSS style of validate() text
+    tags$style(HTML("
+      .shiny-output-error-validation {
+        color: #ff0000;
+        font-weight: bold;
+      }
+    "))
+  ),
   
   titlePanel(
     h1(strong("FAST-R"), align = "center")
@@ -37,7 +40,9 @@ ui <- fluidPage(
   ),
   
   ui <- fluidPage(
-    data_analysisInput("data_analysis")
+    data_analysisUI("data_analysis"),
+    
+    
   )
 )
     
@@ -50,6 +55,6 @@ server <- function(input, output, session) {
   
   }
 
-shinyApp(ui, server) # , options = list(launch.browser = TRUE) -> browser lunch
+shinyApp(ui, server)
 
 }

@@ -17,12 +17,10 @@ tidy_IAoutput <- function(file_path,
   } else {
     beep(1)
     Sys.sleep(1)
-    stop(
-      str_c(
-        "ERROR
-        ",file_path, " was not found.
-        
-        Ensure file path entered corresponds to the Image Analyst output .xlsx file")
+    validate(
+      HTML(paste0("ERROR<br/>", 
+                  file_path, " was not found.<br/>",
+                  "Ensure file path entered corresponds to the Image Analyst output .xlsx file"))
       )
   }
   

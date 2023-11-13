@@ -15,7 +15,10 @@ Config/testthat/edition: 3
 Imports: 
     dplyr,
     magrittr,
+    plater,
+    readxl,
     shiny,
     shinyjs,
     stringr,
+    writexl,
     zip
