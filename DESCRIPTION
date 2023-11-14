@@ -20,5 +20,6 @@ Imports:
     shiny,
     shinyjs,
     stringr,
+    tidyr,
     writexl,
     zip
