@@ -96,13 +96,6 @@ data_analysisUI <- function(id) {
     fluidRow(
       column(12, align = "center",
              br(),
-             textOutput(NS(id, "tidying_IAoutput_message"))
-      )
-    ),
-    
-    fluidRow(
-      column(12, align = "center",
-             br(),
              textOutput(NS(id, "analysis_report_message"))
       )
     ),

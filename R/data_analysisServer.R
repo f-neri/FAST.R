@@ -9,6 +9,10 @@ data_analysisServer <- function(id) {
       message("\nImage Analyst output file:\n", input$Image_Analyst_output$name, ";\n\nFiles uploaded: ", length(input$Image_Analyst_output$name), "\n")
     })
     
+    # check file extension is .xlsx
+    
+    ## ADD CODE
+    
 # Download plate metadata template ----------------------------------------
     
     # toggle download_metadata button after data upload
@@ -73,16 +77,15 @@ data_analysisServer <- function(id) {
 
 # Data Analysis -----------------------------------------------------------
     
+    # check input files +
     # tidy IAouput and merge with metadata
     tidied_IAoutput <- reactive({
       
-      # Check input files: START
+      # Check input files --- MOVE FILE READING AND CHECKING INTO MODULE ---
       
       ## disable button_analysis while computing, and update message
       shinyjs::disable("button_analysis")
       updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin"))
-      
-      on.exit({ enable_button_analysis() })
       
       ## check that an equal number of IAoutput and metadata files have been uploaded
       if (length(input$Image_Analyst_output$name) != length(input$plate_metadata$name)) {
@@ -125,55 +128,142 @@ data_analysisServer <- function(id) {
           For each Image Analyst output file uploaded, an adjusted plate metadata file with the same name + \"_metadata\" must also be uploaded.
           Verify that each Image_Analyst_output.xlsx file has a corresponding Image_Analyst_output_metadata.csv file.
           
-          uploaded Image Analyst output file: ", IAoutput_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name],"
-          uploaded Adjusted metadata file: ", plate_metadata_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]
+          uploaded Image Analyst output file: ", paste(c(IAoutput_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]), collapse=", "),"
+          uploaded Adjusted metadata file: ", paste(c(plate_metadata_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]), collapse=", ")
           )
         )
       }
       
-      ## check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
+      ## create input file table
+      Input_files <- dplyr::full_join(IAoutput_files, plate_metadata_files)
       
-      Input_files <- dplyr::left_join(IAoutput_files, plate_metadata_files) %>%
-        dplyr::mutate(IAoutput_df = NA,
-                      metadata_df = NA)
+      ## read and check metadata files
+      Input_files$metadata_df <- vector(mode = "list", length = nrow(Input_files)) # empty list-column to store metadata
       
       for (i in seq_len(nrow(Input_files))) {
         
+        # read metadata
+        Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i],
+                                                           well_ids_column = "well",    # name to give column of well IDs
+                                                           sep = ",") %>%               # separator used in the csv file
+          dplyr::select(dplyr::where(~ !all(is.na(.)))) # remove columns whose values are all NA
         
-        Input_files$IAoutput_df[i] <- readxl::read_xlsx(Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
-        Input_files$metadata_df[i] <- plater::read_plate(Input_files$metadata_df[i],
-                                                               well_ids_column = "well",    # name to give column of well IDs
-                                                               sep = ",")                  # separator used in the csv file
+        # adjust metadata variable names
+        names(Input_files$metadata_df[[i]]) <- names(Input_files$metadata_df[[i]]) %>%
+          tolower() %>%
+          make.names()
         
-        number_wells_IAoutput <- Input_files$IAoutput_df[[i]] %>% .$well %>% unique() %>% length()
-        number_wells_metadata <- Input_files$metadata_df[[i]] %>% .$well %>% unique() %>% length()
-        
-        if (number_wells_IAoutput != number_wells_metadata) {
-          beep(1)
+        # check that metadata has a variable named Condition
+        if ( !(any(grepl("^condition$", names(Input_files$metadata_df[[i]]), ignore.case = TRUE))) ) { # if metadata does NOT have Condition column
+          enable_button_analysis()
           validate(
             paste0(
-          "ERROR: Mismatch in well number between Image Analyst output file and adjusted plate metadata
+              "ERROR: Plate metadata is incorrect; \"Condition\" is missing
           
-          Ensure that each well present in the Image Analyst output file has a corresponding label in the Plate Metadata file
+          Ensure that each metadata file contains 1 plate template named \"Condition\"
           
-          
-          
-          Image Analyst output file: ", Input_files$name[i], "
-          Well number: ", number_wells_IAoutput,"
-          
-          Adjusted plate metadata file: ", Input_files$name[i], "
-          Well number: ", number_wells_metadata
+          Incorrect metadata file: ", Input_files$metadata_name[i], "
+          Plate template names/variables: ",paste(c(names(Input_files$metadata_df[[i]])), collapse=", ")
             )
           )
         }
         
+        # check that metadata has max 3 variables
+        if ( length(names(Input_files$metadata_df[[i]])) > 4 ) { 
+          enable_button_analysis()
+          validate(
+            paste0(
+              "ERROR: Plate metadata is incorrect; too many plate templates/variables
+          
+          Ensure that each metadata file contains no more than 3 plate templates/variables (\"Condition\" + 2 optional additional variables)
+          
+          incorrect metadata file: ", Input_files$metadata_name[i], "
+          Plate template names/variables: ",paste(c(names(Input_files$metadata_df[[i]])), collapse=", ")
+            )
+          )
+        }
       }
       
-      # Check input files: END
+      ## check all metadata files have same variables
       
-      message("\ntidying IAoutput completed")
+      ### get vector with indices of Input_files$metadata_df whose col names don't match those of the 1st df
+      mismatched_indices <- check_variables_match_across_dfs(Input_files$metadata_df)
       
-      Input_files
+      ### check vector is empty (i.e. all df names match the first one)
+      if (length(mismatched_indices) > 0) {
+        enable_button_analysis()
+        validate(
+          paste0(
+            "ERROR: Plate metadata files should all have the same variables
+          
+          Ensure that all metadata files contain the same plate template names/variables.
+          
+          Variables in first metadata file (", Input_files$metadata_name[1], "): ", paste(c(sort(names(Input_files$metadata_df[[1]]))), collapse=", "), "
+          Mismatched metadata files: ", paste(c(Input_files$metadata_name[mismatched_indices]), collapse=", ")
+          )
+        )
+      }
+      
+      ## read and check IAoutput files
+      Input_files$IAoutput_df <- vector(mode = "list", length = nrow(Input_files))
+      
+      for (i in seq_len(nrow(Input_files))) {
+        
+        # read IAoutput
+        Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
+        
+        # check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
+        n_channels <- Input_files$IAoutput_df[[i]] %>% .$Channel %>% unique() %>% length()
+        number_wells_IAoutput <- nrow( Input_files$IAoutput_df[[i]] ) / n_channels
+        
+        number_wells_metadata <- Input_files$metadata_df[[i]] %>% .$well %>% length()
+        
+        if (number_wells_IAoutput != number_wells_metadata) {
+          enable_button_analysis()
+          validate(
+            paste0(
+              "ERROR: Mismatch in well number between Image Analyst output file and adjusted plate metadata
+          
+          Ensure that each well present in the Image Analyst output file has a corresponding label in the Plate Metadata file
+          
+          Image Analyst output file: ", Input_files$IAoutput_name[i], "
+          Well number: ", number_wells_IAoutput,"
+          
+          Adjusted plate metadata file: ", Input_files$metadata_name[i], "
+          Well number: ", number_wells_metadata
+            )
+          )
+        }  
+      }
+      
+      # tidy IAoutput and merge with metadata
+      
+      Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
+      
+      for (i in seq_len(nrow(Input_files))) {
+        
+        # tidy IAoutput
+        tidied_IAoutput <- tidy_IAoutput(Input_files$IAoutput_df[[i]])
+        
+        # add metadata to tidied_IAoutput
+        df <- dplyr::left_join(tidied_IAoutput, Input_files$metadata_df[[i]])
+        
+        # add plate identifier (i.e. file name) and rearrange column names
+        variable_names <- names(Input_files$metadata_df[[i]])[-(names(Input_files$metadata_df[[i]]) == "well")]
+        
+        df <- df %>%
+          dplyr::mutate(plate = Input_files$IAoutput_name[i]) %>% # add plate name
+          dplyr::select(plate, well, cell_ID, dplyr::all_of(variable_names), dplyr::everything()) # rearrange
+        
+        # return df
+        Input_files$tidy_df[[i]] <- df
+      }
+      
+      # merge tidy_dfs into a single df
+      single_cell_df <- dplyr::bind_rows(Input_files$tidy_df)
+      
+      # return single cell df
+      single_cell_df
       
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
@@ -191,10 +281,7 @@ data_analysisServer <- function(id) {
       
       message("\ndata analysis completed")
       
-      on.exit({
-        shinyjs::enable("button_analysis")
-        updateActionButton(session, "button_analysis", label = "Run Analysis", icon = icon("rocket"))
-      })
+      on.exit({ enable_button_analysis() })
       
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
@@ -205,12 +292,6 @@ data_analysisServer <- function(id) {
 # Plot tables with analyzed data ------------------------------------------
     
     # Print data analysis message
-    output$tidying_IAoutput_message <- renderText({
-      tidied_IAoutput()
-      c("Single-cell data table generated!!")
-    }) %>%
-      bindEvent(input$button_analysis)
-    
     output$analysis_report_message <- renderText({
       analysis_report()
       c("Analysis report generated!!")
