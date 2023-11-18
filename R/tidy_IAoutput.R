@@ -7,8 +7,10 @@ tidy_IAoutput <- function(data,
   
   IAoutput <- data
   
-  # change Plot_Name/Name column name to well
+  # set Condition capitalization
+  names(IAoutput)[grepl("^(?i)(condition)$", names(IAoutput))] <- "Condition"
   
+  # change Plot_Name/Name column name to well
   IAoutput <- if ( any(colnames(IAoutput) %in% "Plot Name") ) {
     IAoutput %>% dplyr::rename(well = "Plot Name")
   } else {
@@ -26,7 +28,6 @@ tidy_IAoutput <- function(data,
   IAoutput <- IAoutput[, cols_to_keep]
   
   # pivot_longer()
-  
   OBJ_vec <- colnames(IAoutput)[-(1:2)]
   
   tidy_data1 <-  tidyr::pivot_longer(IAoutput, all_of(OBJ_vec),

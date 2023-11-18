@@ -102,13 +102,16 @@ data_analysisUI <- function(id) {
     
     # show tidied single cell & analysis report tables
     fluidRow(
-      column(4, offset = 1,
-             br(),
-             dataTableOutput(NS(id, "df_single_cell"))
+      column(10, offset = 1, align = "center",
+             br(), br(), br(),
+             textOutput(NS(id, "df_single_cell_title")),
+             DT::dataTableOutput(NS(id, "df_single_cell"))
+             
       ),
-      column(6,
-             br(),
-             dataTableOutput(NS(id, "df_analysis_report"))
+      column(10, offset = 1, align = "center",
+             br(), br(), br(),
+             textOutput(NS(id, "df_analysis_report_title")),
+             DT::dataTableOutput(NS(id, "df_analysis_report"))
       )
     )
     

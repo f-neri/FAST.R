@@ -66,26 +66,32 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
-
-# Upload adjusted metadata ------------------------------------------------
+    # Upload adjusted metadata ------------------------------------------------
 
     # observe: input adjusted metadata
     observeEvent(input$plate_metadata, {
       message("\nAdjusted plate metadata file(s):\n", input$plate_metadata$name, ";\n")
       message("File(s) uploaded: ", length(input$plate_metadata$name), "\n")
     })
-
-# Data Analysis -----------------------------------------------------------
+    
+    # DATA ANALYSIS -----------------------------------------------------------
     
     # check input files +
     # tidy IAouput and merge with metadata
-    tidied_IAoutput <- reactive({
+    single_cell_data <- reactive({
       
-      # Check input files --- MOVE FILE READING AND CHECKING INTO MODULE ---
+      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold)
       
-      ## disable button_analysis while computing, and update message
+      # disable button_analysis while computing, and update message
       shinyjs::disable("button_analysis")
       updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin"))
+      
+      # enable button_analysis on exit
+      on.exit({ enable_button_analysis() })
+      
+      # Check input files -------------------------------------------------------
+      
+      # --- MOVE FILE READING AND CHECKING INTO MODULE ---
       
       ## check that an equal number of IAoutput and metadata files have been uploaded
       if (length(input$Image_Analyst_output$name) != length(input$plate_metadata$name)) {
@@ -150,7 +156,6 @@ data_analysisServer <- function(id) {
         
         # adjust metadata variable names
         names(Input_files$metadata_df[[i]]) <- names(Input_files$metadata_df[[i]]) %>%
-          tolower() %>%
           make.names()
         
         # check that metadata has a variable named Condition
@@ -236,8 +241,9 @@ data_analysisServer <- function(id) {
         }  
       }
       
-      # tidy IAoutput and merge with metadata
-      
+
+# tidy IAoutput and merge with metadata -----------------------------------
+
       Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
       
       for (i in seq_len(nrow(Input_files))) {
@@ -274,15 +280,11 @@ data_analysisServer <- function(id) {
     # perform calculations and generate analysis_report table
     analysis_report <- reactive({
       
-      tidied_IAoutput() # start point for analysis report table
-      input$background_threshold # needed for % calculations
+      # generate analysis report
+      analysis_report <- analyze_single_cell_data(single_cell_data(), input$background_threshold)
       
-      Sys.sleep(1) # pretend this is long calculation
-      
-      message("\ndata analysis completed")
-      
-      on.exit({ enable_button_analysis() })
-      
+      # return analysis report df
+      analysis_report
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
@@ -294,21 +296,81 @@ data_analysisServer <- function(id) {
     # Print data analysis message
     output$analysis_report_message <- renderText({
       analysis_report()
-      c("Analysis report generated!!")
+      c("Analysis report generated!")
     }) %>%
       bindEvent(input$button_analysis)
     
     # output tidied single data
-    output$df_single_cell <- renderDataTable(
-      tidied_IAoutput(),
-      options = list(pageLength = 5)
-    )
+    output$df_single_cell_title <- renderText({
+      single_cell_data()
+      "Single Cell Data"
+      })
+    
+    output$df_single_cell <- DT::renderDataTable(
+      DT::datatable(
+        single_cell_data(),
+        filter = 'top', extensions = c('Buttons', 'Scroller'),
+        options = list(scroller = TRUE,
+                       scrollY = 300,
+                       scrollX = 500,
+                       deferRender = TRUE,
+                       dom = 'lBfrtip',
+                       fixedColumns = TRUE,
+                       buttons = list('excel',
+                                      list(extend = 'colvis', targets = 0, visible = FALSE)
+                                      )
+                       ),
+        rownames = FALSE)
+      )
+    
+    ## table title
+    output$analysis_report_title <- renderText({
+      analysis_report()
+      "Analysis Report"
+    })
     
     # output analysis report
-    output$df_analysis_report <- renderDataTable(
-      analysis_report(),
-      options = list(pageLength = 5)
-    )
     
-  })
+    ## set columns to be visible initially
+    cols_to_vis_indices <- reactive({
+      # create vector containing additional variables
+      additional_variables <- names(analysis_report())[-c(1:3)] # remove plate, well, Condition
+      
+      pos_cell_counts <- which(additional_variables == "cell_counts") # find index for cell_counts
+      
+      additional_variables <- additional_variables[-c(pos_cell_counts:length(additional_variables))] # remove all vars after cell_counts, leaving only possible additional vars
+      
+      # create vector with cols to visualize
+      cols_to_vis <- c("plate", "well", "Condition", additional_variables,
+                       "cell_counts", "Nuclear_Area_median", "EdU_median", "SABGal_median",
+                       "percentage_EdU_positive", "percentage_SABGal_positive"
+                       )
+      
+      # get indices of cols to NOT visualize
+      indices <- which(!(names(analysis_report()) %in% cols_to_vis)) %>% -1 # indices in columnDefs calls start from 0, not 1
+      
+      print(indices)
+      
+      indices
+    })
+    
+    ## render table
+    output$df_analysis_report <- DT::renderDataTable({
+      DT::datatable(
+        analysis_report(),
+        filter = 'top', extensions = c('Buttons', 'Scroller'),
+        options = list(scroller = TRUE,
+                       scrollY = 300,
+                       scrollX = 500,
+                       deferRender = TRUE,
+                       dom = 'lBfrtip',
+                       fixedColumns = TRUE,
+                       buttons = list('excel', 'colvis'),
+                       columnDefs = list(
+                         list(visible = FALSE, targets = cols_to_vis_indices())  # Use the vector to hide columns
+                       )
+                       ),
+        rownames = FALSE)
+      })
+    })
 }

@@ -16,7 +16,16 @@ FASTR <- function() { # app needs to be wrapped in function to be used as packag
 
 ui <- fluidPage(
   shinyjs::useShinyjs(), # enables shinyjs functions
-  waiter::use_waitress(), # enables waiter functions
+  waiter::useWaiter(), # enables waiter functions
+  shinyFeedback::useShinyFeedback(), # enables ShinyFeedback
+  
+  waiter::autoWaiter(color = "white",
+                     html = tagList(br(),
+                                    waiter::spin_loaders(id = 24, color = "darkblue"),
+                                    tagAppendAttributes(style = "color:darkblue",
+                                                        p("Loading ..."))
+                                    )
+                     ),
   
   tags$head( # changes CSS style of validate() text
     tags$style(HTML("
