@@ -92,7 +92,7 @@ data_analysisUI <- function(id) {
       )
     ),
     
-    # show analysis messages
+    # show data analysis error messages
     fluidRow(
       column(12, align = "center",
              br(),
@@ -104,13 +104,17 @@ data_analysisUI <- function(id) {
     fluidRow(
       column(10, offset = 1, align = "center",
              br(), br(), br(),
-             textOutput(NS(id, "df_single_cell_title")),
+             div(textOutput(NS(id, "df_single_cell_title")),
+                 style = "font-size: 16pt"),
+             br(),
              DT::dataTableOutput(NS(id, "df_single_cell"))
              
       ),
       column(10, offset = 1, align = "center",
              br(), br(), br(),
-             textOutput(NS(id, "df_analysis_report_title")),
+             div(textOutput(NS(id, "analysis_report_title")),
+                 style = "font-size: 16pt"),
+             br(),
              DT::dataTableOutput(NS(id, "df_analysis_report"))
       )
     )

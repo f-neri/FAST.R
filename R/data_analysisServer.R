@@ -82,9 +82,17 @@ data_analysisServer <- function(id) {
       
       req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold)
       
+      # Update UI ---------------------------------------------------------------
+      
       # disable button_analysis while computing, and update message
       shinyjs::disable("button_analysis")
-      updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin"))
+      updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin")) # not working
+      
+      # disable table outputs w/ shinyjs
+      hide_multiple_ids(c("df_single_cell_title",
+                          "df_single_cell",
+                          "analysis_report_title",
+                          "df_analysis_report"))
       
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
@@ -291,16 +299,25 @@ data_analysisServer <- function(id) {
                 input$background_threshold) %>%
       bindEvent(input$button_analysis)
     
-# Plot tables with analyzed data ------------------------------------------
+
+# DATA ANALYSIS OUTPUT ----------------------------------------------------
     
     # Print data analysis message
     output$analysis_report_message <- renderText({
-      analysis_report()
-      c("Analysis report generated!")
+      analysis_report() # creates dependency on analysis_report() output
+      
+      # turn output tables visible w/ shinyjs
+      show_multiple_ids(c("df_single_cell_title",
+                          "df_single_cell",
+                          "analysis_report_title",
+                          "df_analysis_report"))
+      
+      # return empty text if all good
+      ""
     }) %>%
       bindEvent(input$button_analysis)
     
-    # output tidied single data
+    # output tidied single cell data
     output$df_single_cell_title <- renderText({
       single_cell_data()
       "Single Cell Data"
@@ -311,7 +328,7 @@ data_analysisServer <- function(id) {
         single_cell_data(),
         filter = 'top', extensions = c('Buttons', 'Scroller'),
         options = list(scroller = TRUE,
-                       scrollY = 300,
+                       scrollY = 200,
                        scrollX = 500,
                        deferRender = TRUE,
                        dom = 'lBfrtip',
@@ -323,13 +340,13 @@ data_analysisServer <- function(id) {
         rownames = FALSE)
       )
     
+    # output analysis report
+    
     ## table title
     output$analysis_report_title <- renderText({
       analysis_report()
       "Analysis Report"
     })
-    
-    # output analysis report
     
     ## set columns to be visible initially
     cols_to_vis_indices <- reactive({
@@ -349,8 +366,6 @@ data_analysisServer <- function(id) {
       # get indices of cols to NOT visualize
       indices <- which(!(names(analysis_report()) %in% cols_to_vis)) %>% -1 # indices in columnDefs calls start from 0, not 1
       
-      print(indices)
-      
       indices
     })
     
@@ -360,7 +375,7 @@ data_analysisServer <- function(id) {
         analysis_report(),
         filter = 'top', extensions = c('Buttons', 'Scroller'),
         options = list(scroller = TRUE,
-                       scrollY = 300,
+                       scrollY = 200,
                        scrollX = 500,
                        deferRender = TRUE,
                        dom = 'lBfrtip',
