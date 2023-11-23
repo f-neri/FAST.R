@@ -352,10 +352,13 @@ data_analysisServer <- function(id) {
     
     # disable download button on app load
     shinyjs::disable("download_sc_data")
+    shinyjs::hide("download_sc_data_panel")
     
     # enable download button upon calculation of single_cell_data()
     observe({
       shinyjs::enable("download_sc_data")
+      shinyjs::show("download_sc_data_panel")
+      
     }) %>%
       bindEvent(single_cell_data())
     
@@ -419,10 +422,12 @@ data_analysisServer <- function(id) {
     
     # disable download button on app load
     shinyjs::disable("download_analysis_report")
+    shinyjs::hide("download_analysis_report_panel")
     
     # enable download button upon calculation of single_cell_data()
     observe({
       shinyjs::enable("download_analysis_report")
+      shinyjs::show("download_analysis_report_panel")
     }) %>%
       bindEvent(analysis_report())
     
