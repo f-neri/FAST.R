@@ -159,7 +159,7 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
     ) %>%
     dplyr::select(!c(Nuclear_Area_median_reference, EdU_median_reference, SABGal_median_reference))
   
-  # Readd plate column -----------------------------------------------------
+  # Re-add plate column -----------------------------------------------------
   
   # create small df with plate column
   plate_df <- df_single_cell_data %>%
@@ -170,8 +170,36 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   summary_df <- dplyr::left_join(summary_df, plate_df) %>%
     dplyr::select(plate, everything()) # rearrange plate to be 1st column
   
+  # Rename additional_variables with original names -------------------------
+  
+  if (length(additional_variables) > 0) {
+    for (i in seq_along(additional_variables)) {
+      if (i == 1) {
+        names(summary_df)[grepl(pattern = "additional_variable_1", names(summary_df))] <- additional_variable_1
+      } else if (i == 2) {
+        names(summary_df)[grepl(pattern = "additional_variable_2", names(summary_df))] <- additional_variable_2
+      }
+    }
+  }
+  
+  # reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
+  
+  # identify percentage columns
+  is_percentage_column <- grepl("percentage", names(summary_df))
+  
+  # multiply proportion values by 100
+  summary_df[ , is_percentage_column] <- summary_df[ , is_percentage_column] * 100
+  
+  # identify percentage a double columns
+  is_double_column <- sapply(summary_df, is.double)
+  
+  # Format values to 2 decimal digits
+  summary_df[, is_double_column] <- lapply(summary_df[, is_double_column], function(x) format(x, digits = 2, nsmall = 2))
+  
   # Adjust column order -----------------------------------------------------
-  rearrange_df_columns(summary_df, c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"), "SABGal_max")
+  rearrange_df_columns(summary_df,
+                       cols_to_move = c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
+                       col_anchor =  "SABGal_max")
   
   # Return df ---------------------------------------------------------------
   summary_df

@@ -3,6 +3,7 @@
 #'
 #' @import shiny
 #' @import magrittr
+#' @import ggplot2
 #' @return
 #' @export
 #'
@@ -49,9 +50,14 @@ ui <- fluidPage(
   ),
   
   ui <- fluidPage(
-    data_analysisUI("data_analysis"),
     
-    
+    tabsetPanel(
+      tabPanel("Data Analysis",
+               data_analysisUI("data_analysis")),
+      
+      tabPanel("Data Visualization",
+               data_visualizationUI("data_visualization"))
+    )
   )
 )
     
@@ -61,6 +67,8 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   data_analysisServer("data_analysis")
+  
+  data_visualizationServer("data_visualization")
   
   }
 

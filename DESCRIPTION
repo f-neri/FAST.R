@@ -15,8 +15,10 @@ Config/testthat/edition: 3
 Imports: 
     dplyr,
     DT,
+    ggplot2,
     magrittr,
     plater,
+    RColorBrewer,
     readxl,
     shiny,
     shinyjs,

@@ -97,7 +97,7 @@ data_analysisServer <- function(id) {
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
       
-      # Check input files -------------------------------------------------------
+      # Read and check input files -------------------------------------------------------
       
       # --- MOVE FILE READING AND CHECKING INTO MODULE ---
       
@@ -249,8 +249,7 @@ data_analysisServer <- function(id) {
         }  
       }
       
-
-# tidy IAoutput and merge with metadata -----------------------------------
+      # tidy IAoutput and merge with metadata -----------------------------------
 
       Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
       
@@ -285,7 +284,7 @@ data_analysisServer <- function(id) {
                 input$background_threshold) %>%
       bindEvent(input$button_analysis)
     
-    # perform calculations and generate analysis_report table
+    # Generate analysis_report table ------------------------------------------
     analysis_report <- reactive({
       
       # generate analysis report
@@ -310,20 +309,21 @@ data_analysisServer <- function(id) {
       show_multiple_ids(c("df_single_cell_title",
                           "df_single_cell",
                           "analysis_report_title",
-                          "df_analysis_report"))
+                          "df_analysis_report",
+                          "download_sc_data"))
       
       # return empty text if all good
       ""
     }) %>%
       bindEvent(input$button_analysis)
     
-    # output tidied single cell data
+    # Output tidied single cell data ------------------------------------------
     output$df_single_cell_title <- renderText({
       single_cell_data()
       "Single Cell Data"
       })
     
-    output$df_single_cell <- DT::renderDataTable(
+    output$df_single_cell <- DT::renderDataTable({
       DT::datatable(
         single_cell_data(),
         filter = 'top', extensions = c('Buttons', 'Scroller'),
@@ -333,14 +333,33 @@ data_analysisServer <- function(id) {
                        deferRender = TRUE,
                        dom = 'lBfrtip',
                        fixedColumns = TRUE,
-                       buttons = list('excel',
-                                      list(extend = 'colvis', targets = 0, visible = FALSE)
-                                      )
+                       buttons = list(
+                         list(extend = 'colvis', targets = 0, visible = FALSE)
+                         )
                        ),
         rownames = FALSE)
-      )
+      })
     
-    # output analysis report
+    # download button for single-cell data
+    output$download_sc_data <- downloadHandler(
+      filename = function() {
+        paste0("Single_Cell_Data_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(single_cell_data(), file, row.names = FALSE)
+      }
+    )
+    
+    # disable download button on app load
+    shinyjs::disable("download_sc_data")
+    
+    # enable download button upon calculation of single_cell_data()
+    observe({
+      shinyjs::enable("download_sc_data")
+    }) %>%
+      bindEvent(single_cell_data())
+    
+    # Output analysis report --------------------------------------------------
     
     ## table title
     output$analysis_report_title <- renderText({
@@ -349,7 +368,7 @@ data_analysisServer <- function(id) {
     })
     
     ## set columns to be visible initially
-    cols_to_vis_indices <- reactive({
+    cols_to_hide_indices <- reactive({
       # create vector containing additional variables
       additional_variables <- names(analysis_report())[-c(1:3)] # remove plate, well, Condition
       
@@ -380,12 +399,32 @@ data_analysisServer <- function(id) {
                        deferRender = TRUE,
                        dom = 'lBfrtip',
                        fixedColumns = TRUE,
-                       buttons = list('excel', 'colvis'),
+                       buttons = list('colvis'),
                        columnDefs = list(
-                         list(visible = FALSE, targets = cols_to_vis_indices())  # Use the vector to hide columns
+                         list(visible = FALSE, targets = cols_to_hide_indices())  # Use the vector to hide columns
                        )
                        ),
         rownames = FALSE)
       })
+    
+    ## download button for analysis report data
+    output$download_analysis_report <- downloadHandler(
+      filename = function() {
+        paste0("Analysis_Report_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        write.csv(analysis_report(), file, row.names = FALSE)
+      }
+    )
+    
+    # disable download button on app load
+    shinyjs::disable("download_analysis_report")
+    
+    # enable download button upon calculation of single_cell_data()
+    observe({
+      shinyjs::enable("download_analysis_report")
+    }) %>%
+      bindEvent(analysis_report())
+    
     })
 }

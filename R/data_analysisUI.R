@@ -24,11 +24,11 @@ data_analysisUI <- function(id) {
     # upload IAoutput
     fluidRow(
       column(3, offset = 3, align = "center",
-             fileInput(NS(id, "Image_Analyst_output"), label = "Image Analyst output file", multiple = TRUE, accept = ".xlsx")
+             fileInput(NS(id, "Image_Analyst_output"), label = "Image Analyst Output File", multiple = TRUE, accept = ".xlsx")
       ),
       column(5, offset = 0,
              br(),
-             p("Updaload the ", strong("Image Analyst output file"), " containing your single-cell measurements")
+             p("Upload the ", strong("Image Analyst Output File"), " containing your single-cell measurements.")
       )
     ),
     
@@ -37,48 +37,48 @@ data_analysisUI <- function(id) {
       column(3, offset = 3, align = "center",
              br(),
              br(),
-             downloadButton(NS(id, "download_metadata"), label = "Plate metadata template"),
+             downloadButton(NS(id, "download_metadata"), label = "Plate Metadata Template"),
              br(),
              br()
       ),
       column(5, offset = 0,
-             p("Download the ", strong("plate metadata template *.csv file"), ", and modify it appropriately to add your metadata:"),
-             p("- In the 1st plate template (\"Condition\"), ", strong("add labels")," to distinguish your different experimental conditions
-           (e.g. IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
-             (e.g. IR_background & Mock IR_background)."),
-             p("- ", em("Optional"),": labels for up to two additional variables can be entered in the two additional plate
-             templates (e.g., different culturing media or varying concentrations of a drug treatment, etc.). Replace the
-             placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g. \"Medium\" or \"DrugA (nM)\")."),
+             p("Download the ", strong("Plate Metadata Template.csv file"), ", and modify it appropriately to include your metadata:"),
+             p("- In the first plate template (\"Condition\"), ", strong("add labels")," to differentiate your experimental conditions
+           (e.g., IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
+             (e.g., IR_background & Mock IR_background)."),
+             p("- ", em("Optional"), ": Labels for up to two additional variables can be added in the remaining plate
+             templates (e.g., different culturing media or varying concentrations of a drug treatment). Replace the
+             placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g., \"Medium\" or \"DrugA (nM)\")."),
              br()
       )
     ),
     
-    # updload adjusted metadata
+    # upload adjusted metadata
     fluidRow(
       column(3, offset = 3, align = "center",
-             fileInput(NS(id, "plate_metadata"), label = "Adjusted metadata file",
+             fileInput(NS(id, "plate_metadata"), label = "Adjusted Metadata File",
                        multiple = TRUE,  accept = ".csv"),
       ),
       column(5, offset = 0,
              br(),
              br(),
-             p("Updaload the ", strong("adjusted metadata file")),
+             p("Upload the ", strong("adjusted metadata file"), "."),
              br()
       )
     ),
     
-    # adjust background_threhsold percentile value
+    # adjust background_threshold percentile value
     fluidRow(
       column(3, offset = 3, align = "center",
-             numericInput(NS(id, "background_threshold"), label = "Background threshold",
-                          value = 0.95, min = 0.9, max = 1.0, step = 0.01, width = "150px"),
+             numericInput(NS(id, "background_threshold"), label = "Background Threshold",
+                          value = 0.95, min = 0.9, max = 1.0, step = 0.01, width = "180px"),
              helpText("Recommended value: 0.95")
       ),
       column(5, offset = 0,
              br(),
-             p(em("Optional"), "Adjust the ", strong("Background threshold"), ".
-           This is the percentile value (0.90-1.00) to be used when calculating the staining
-             threshold from Background wells"),
+             p(em("Optional"), ": Adjust the ", strong("Background Threshold"), ".
+           This is the percentile value (0.90-1.00) used to calculate the staining
+             threshold from Background wells."),
              br()
       )
     ),
@@ -92,7 +92,7 @@ data_analysisUI <- function(id) {
       )
     ),
     
-    # show data analysis error messages
+    # show upload / data analysis error messages
     fluidRow(
       column(12, align = "center",
              br(),
@@ -107,7 +107,8 @@ data_analysisUI <- function(id) {
              div(textOutput(NS(id, "df_single_cell_title")),
                  style = "font-size: 16pt"),
              br(),
-             DT::dataTableOutput(NS(id, "df_single_cell"))
+             DT::dataTableOutput(NS(id, "df_single_cell")),
+             downloadButton(NS(id, "download_sc_data"), label = "Download Single-Cell Data")
              
       ),
       column(10, offset = 1, align = "center",
@@ -115,11 +116,11 @@ data_analysisUI <- function(id) {
              div(textOutput(NS(id, "analysis_report_title")),
                  style = "font-size: 16pt"),
              br(),
-             DT::dataTableOutput(NS(id, "df_analysis_report"))
+             DT::dataTableOutput(NS(id, "df_analysis_report")),
+             downloadButton(NS(id, "download_analysis_report"), label = "Download Analysis Report"),
+             br()
       )
     )
     
   )
-  
-  
 }
