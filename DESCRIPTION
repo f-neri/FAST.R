@@ -2,8 +2,8 @@ Package: FASTR
 Title: FAST Data Analysis App
 Version: 0.0.0.9000
 Authors@R: 
-    person("Francesco", "Neri", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+    person("Francesco", "Neri", , "f.francesconeri@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "https://orcid.org/0000-0001-6818-684X"))
 Description: R shiny app to perform data analysis and visualization in the FAST (Fully Automated Senescence Test) workflow.
 License: Apache License (>= 2)
 Encoding: UTF-8
