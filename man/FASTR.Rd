@@ -2,10 +2,16 @@
 % Please edit documentation in R/app.R
 \name{FASTR}
 \alias{FASTR}
-\title{FASTR}
+\title{FASTR: Data Analysis App for the Fully Automated Senescent Test (FAST) workflow}
 \usage{
 FASTR()
 }
+\value{
+Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
+}
 \description{
-FASTR
+FASTR: Data Analysis App for the Fully Automated Senescent Test (FAST) workflow
+}
+\examples{
+FASTR()
 }

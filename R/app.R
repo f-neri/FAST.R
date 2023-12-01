@@ -1,18 +1,23 @@
 
-#' FASTR
+#' FASTR: Data Analysis App for the Fully Automated Senescent Test (FAST) workflow
+#'
+#' Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
 #'
 #' @import shiny
-#' @import magrittr
 #' @import ggplot2
-#' @return
+#' @import magrittr
+#' @return Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
 #' @export
 #'
 #' @examples
+#' FASTR()
 
 FASTR <- function() { # app needs to be wrapped in function to be used as package
   
   . <- NULL # workaround to prevent an R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
   
+  # Set file upload size limit to 20 MB
+  options(shiny.maxRequestSize=20*1024^2)
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(
@@ -22,9 +27,12 @@ ui <- fluidPage(
   
   waiter::autoWaiter(color = "white",
                      html = tagList(br(),
-                                    waiter::spin_loaders(id = 24, color = "darkblue"),
-                                    tagAppendAttributes(style = "color:darkblue",
-                                                        p("Loading ..."))
+                                    waiter::spin_hexdots(),
+                                    tagAppendAttributes(style = "color:black",
+                                                        div(
+                                                          br(),br(),
+                                                          p("Loading ...")
+                                                        ))
                                     )
                      ),
   
@@ -72,6 +80,8 @@ server <- function(input, output, session) {
   
   }
 
-shinyApp(ui, server)
+
+
+shinyApp(ui, server) #, options =list(launch.browser = TRUE))
 
 }
