@@ -10,8 +10,8 @@ FASTR()
 Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
 }
 \description{
-FASTR: Data Analysis App for the Fully Automated Senescent Test (FAST) workflow
+Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
 }
 \examples{
-FASTR()
+# FASTR()
 }

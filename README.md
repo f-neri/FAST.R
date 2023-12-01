@@ -6,9 +6,9 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of FASTR is to provide a user-friendly R shiny app to perform
-data analysis and data visualization for the FAST (Fully Automated
-Senescence Test) Workflow.
+The goal of FASTR is to launch a user-friendly R shiny app to perform
+the data analysis and visualization for the FAST (Fully Automated
+Senescence Test) workflow.
 
 ## Installation
 
@@ -22,9 +22,9 @@ devtools::install_github("f-neri/FASTR")
 
 ## Use
 
-load FASTR and call `FASTR()` to launch the app
+To launch the app, use `FASTR()`
 
 ``` r
-# library(FASTR)
+library(FASTR)
 # FASTR()
 ```

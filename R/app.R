@@ -10,7 +10,7 @@
 #' @export
 #'
 #' @examples
-#' FASTR()
+#' # FASTR()
 
 FASTR <- function() { # app needs to be wrapped in function to be used as package
   
