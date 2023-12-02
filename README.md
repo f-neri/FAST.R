@@ -12,6 +12,13 @@ Senescence Test) workflow.
 
 ## Installation
 
+You can install the CRAN version of FASTR from
+[CRAN](https://cran.r-project.org/) with:
+
+``` r
+install.packages("FASTR")
+```
+
 You can install the development version of FASTR from
 [GitHub](https://github.com/) with:
 

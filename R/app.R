@@ -1,16 +1,17 @@
 
-#' FASTR: Data Analysis App for the Fully Automated Senescent Test (FAST) workflow
+#' FASTR: Analyze and Visualize FAST-Generated Data
 #'
-#' Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
+#' R shiny app to perform data analysis and visualization for the
+#' Fully Automated Senescence Test (FAST) workflow.
 #'
 #' @import shiny
 #' @import ggplot2
 #' @import magrittr
-#' @return Launches an R shiny app to analyze and visualize imaging data obtained via Image Analyst MKII
+#' @return Launches an R shiny app to analyze and visualize data generated with the FAST workflow
 #' @export
 #'
 #' @examples
-#' # FASTR()
+#' \dontrun{FASTR()}
 
 FASTR <- function() { # app needs to be wrapped in function to be used as package
   

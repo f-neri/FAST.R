@@ -22,6 +22,12 @@ The goal of FASTR is to launch a user-friendly R shiny app to perform the data a
 
 ## Installation
 
+You can install the CRAN version of FASTR from [CRAN](https://cran.r-project.org/) with:
+
+``` r
+install.packages("FASTR")
+```
+
 You can install the development version of FASTR from [GitHub](https://github.com/) with:
 
 ``` r
