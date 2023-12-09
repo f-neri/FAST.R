@@ -3,7 +3,7 @@ Title: Analyze and Visualize FAST-Generated Data
 Version: 0.1.0
 Authors@R: 
     person("Francesco", "Neri", , "f.francesconeri@gmail.com", role = c("aut", "cre", "cph"),
-           comment = c(ORCID = "https://orcid.org/0000-0001-6818-684X"))
+           comment = c(ORCID = "0000-0001-6818-684X"))
 Description: R shiny app to perform data analysis and visualization for the
     Fully Automated Senescence Test (FAST) workflow.
 License: Apache License (>= 2)
