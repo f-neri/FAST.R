@@ -8,7 +8,7 @@ data_visualizationServer <- function(id) {
     
     # read single-cell data
     single_cell_data_df <- reactive({
-      read.csv(file = input$single_cell_data_df$datapath)
+      utils::read.csv(file = input$single_cell_data_df$datapath)
     }) %>%
       bindCache(input$single_cell_data_df$datapath) %>%
       bindEvent(input$single_cell_data_df)
@@ -18,7 +18,7 @@ data_visualizationServer <- function(id) {
     
     # read analysis report data
     analysis_report_df <- reactive({
-      read.csv(file = input$analysis_report_df$datapath)
+      utils::read.csv(file = input$analysis_report_df$datapath)
     }) %>%
       bindCache(input$analysis_report_df$datapath) %>%
       bindEvent(input$analysis_report_df)
@@ -67,28 +67,6 @@ data_visualizationServer <- function(id) {
     }) %>%
       bindCache(input$analysis_report_df$datapath) %>%
       bindEvent(input$analysis_report_df)
-    
-    # Show selected palette ---------------------------------------------------
-    
-    # works, but creates huge blank gap below the plot
-    # seems due to default dimensions assigned for plots by R shiny 
-    output$palettePlot <- renderPlot({
-      # Get the selected palette
-      selected_palette <- input$palette
-      
-      # Set smaller margins to avoid "figure margins too large" error
-      # The 'mar' parameter specifies the margins in the order (bottom, left, top, right)
-      par(mar = c(0, 0, 0, 0))
-      
-      # Generate a plot showing the colors of the selected palette
-      colors_to_show <- RColorBrewer::brewer.pal(n = RColorBrewer::brewer.pal.info[selected_palette, "maxcolors"], name = selected_palette)
-      barplot(rep(1, length(colors_to_show)), 
-              col = colors_to_show, 
-              border = NA, 
-              axes = FALSE, 
-              xaxt = 'n', 
-              yaxt = 'n')
-    }, height = 40, width = 100) # Set the height of the output plot to 150px
     
     # Themes & colors ggplot2  ---------------------------------------------------------
     
@@ -439,15 +417,15 @@ data_visualizationServer <- function(id) {
     
     output$download_single_cell_SABGal_EdU_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".png")
+        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".grDevices::png")
       },
       content = function(file) {
-        png(file,
+        grDevices::png(file,
             width = get_dim(dims_plot(), "width", "dpi_adj"),
             height = get_dim(dims_plot(), "height", "dpi_adj"),
             res = input$dpi)
         print(graphs()$single_cell_SABGal_EdU_staining)
-        dev.off()
+        grDevices::dev.off()
       }
     )
     
@@ -462,15 +440,15 @@ data_visualizationServer <- function(id) {
     
     output$download_percentages <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_percentages",  ".png")
+        paste0(Sys.Date(), "_percentages",  ".grDevices::png")
       },
       content = function(file) {
-        png(file,
+        grDevices::png(file,
             width = get_dim(dims_plot(), "width_percentages", "dpi_adj"),
             height = get_dim(dims_plot(), "height_percentages", "dpi_adj"),
             res = input$dpi)
         print(graphs()$percentages)
-        dev.off()
+        grDevices::dev.off()
       }
     )
     
@@ -485,15 +463,15 @@ data_visualizationServer <- function(id) {
     
     output$download_median_SABGal_EdU_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".png")
+        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".grDevices::png")
       },
       content = function(file) {
-        png(file,
+        grDevices::png(file,
             width = get_dim(dims_plot(), "width", "dpi_adj"),
             height = get_dim(dims_plot(), "height", "dpi_adj"),
             res = input$dpi)
         print(graphs()$median_SABGal_EdU_staining)
-        dev.off()
+        grDevices::dev.off()
       }
     )
     
@@ -508,15 +486,15 @@ data_visualizationServer <- function(id) {
     
     output$download_well_percentages <- downloadHandler( # download
       filename = function() {
-        paste0(Sys.Date(), "_well_percentages",  ".png")
+        paste0(Sys.Date(), "_well_percentages",  ".grDevices::png")
       },
       content = function(file) {
-        png(file,
+        grDevices::png(file,
             width = get_dim(dims_plot(), "width", "dpi_adj"),
             height = get_dim(dims_plot(), "height", "dpi_adj"),
             res = input$dpi)
         print(graphs()$well_percentages)
-        dev.off()
+        grDevices::dev.off()
       }
     )
     
@@ -535,15 +513,15 @@ data_visualizationServer <- function(id) {
         
         output$download_median_SABGal_EdU_staining_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".png")
+            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".grDevices::png")
           },
           content = function(file) {
-            png(file,
+            grDevices::png(file,
                 width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
                 height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
                 res = input$dpi)
             print(graphs()$median_SABGal_EdU_staining_comparison)
-            dev.off()
+            grDevices::dev.off()
           }
         )
         
@@ -558,15 +536,15 @@ data_visualizationServer <- function(id) {
         
         output$download_well_percentages_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_well_percentages_comparison",  ".png")
+            paste0(Sys.Date(), "_well_percentages_comparison",  ".grDevices::png")
           },
           content = function(file) {
-            png(file,
+            grDevices::png(file,
                 width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
                 height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
                 res = input$dpi)
             print(graphs()$well_percentages_comparison)
-            dev.off()
+            grDevices::dev.off()
           }
         )
         

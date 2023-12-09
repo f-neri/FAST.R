@@ -37,10 +37,10 @@ generate_example_single_cell_data <- function() {
     assigned_combinations <- all_combinations[rep(1:nrow(all_combinations), each = 8), ]
     
     # Sample data for continuous variables
-    nuclear_area <- runif(length(well_ids_expanded), min = 10, max = 100)
-    dapi <- runif(length(well_ids_expanded), min = 0, max = 50)
-    edu <- runif(length(well_ids_expanded), min = 0, max = 50)
-    sabgal <- runif(length(well_ids_expanded), min = 0, max = 50)
+    nuclear_area <- stats::runif(length(well_ids_expanded), min = 10, max = 100)
+    dapi <- stats::runif(length(well_ids_expanded), min = 0, max = 50)
+    edu <- stats::runif(length(well_ids_expanded), min = 0, max = 50)
+    sabgal <- stats::runif(length(well_ids_expanded), min = 0, max = 50)
     
     # Combine into a dataframe
     data.frame(

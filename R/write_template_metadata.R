@@ -44,7 +44,7 @@ write_template_metadata <- function(file_path, variables, file_name = "metadata"
   metadata_template
   
   # Write to TSV
-  write.table(metadata_template,
+  utils::write.table(metadata_template,
               file.path(file_path, paste0(file_name,".tsv")),
               sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
   

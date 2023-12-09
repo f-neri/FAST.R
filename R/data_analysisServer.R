@@ -346,7 +346,7 @@ data_analysisServer <- function(id) {
         paste0("Single_Cell_Data_", Sys.Date(), ".csv")
       },
       content = function(file) {
-        write.csv(single_cell_data(), file, row.names = FALSE)
+        utils::write.csv(single_cell_data(), file, row.names = FALSE)
       }
     )
     
@@ -416,7 +416,7 @@ data_analysisServer <- function(id) {
         paste0("Analysis_Report_", Sys.Date(), ".csv")
       },
       content = function(file) {
-        write.csv(analysis_report(), file, row.names = FALSE)
+        utils::write.csv(analysis_report(), file, row.names = FALSE)
       }
     )
     

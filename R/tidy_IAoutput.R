@@ -57,7 +57,7 @@ tidy_IAoutput <- function(data,
   tidy_data2 <- tidy_data1 %>%
     tidyr::pivot_wider(names_from = Measured_Parameter,
                        values_from = Signal_Intensity) %>%
-    na.omit() # remove cells that had with blank/NA signal intensities in IAoutput file
+    stats::na.omit() # remove cells that had with blank/NA signal intensities in IAoutput file
   
   print("completed tidying IA output")
   
