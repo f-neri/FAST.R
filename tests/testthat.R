@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(FASTR)
+library(FAST.R)
 
-test_check("FASTR")
+test_check("FAST.R")

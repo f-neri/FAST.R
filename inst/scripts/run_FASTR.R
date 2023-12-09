@@ -1,1 +1,1 @@
-FASTR::FASTR()
+FAST.R::FAST.R()

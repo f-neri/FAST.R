@@ -1,3 +1,3 @@
-# FASTR (development version)
+# FAST.R (development version)
 
 * Initial CRAN submission.

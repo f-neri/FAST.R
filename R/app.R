@@ -1,5 +1,5 @@
 
-#' FASTR: Analyze and Visualize FAST-Generated Data
+#' FAST.R: Analyze and Visualize FAST-Generated Data
 #'
 #' R shiny app to perform data analysis and visualization for the
 #' Fully Automated Senescence Test (FAST) workflow.
@@ -11,9 +11,9 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{FASTR()}
+#' \dontrun{FAST.R()}
 
-FASTR <- function() { # app needs to be wrapped in function to be used as package
+FAST.R <- function() { # app needs to be wrapped in function to be used as package
   
   . <- NULL # workaround to prevent an R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
   

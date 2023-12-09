@@ -1,2 +1,2 @@
 install.packages("devtools")
-devtools::install_github("f-neri/FASTR")
+devtools::install_github("f-neri/FAST.R")

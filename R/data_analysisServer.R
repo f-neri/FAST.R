@@ -26,7 +26,7 @@ data_analysisServer <- function(id) {
         stringr::str_replace_all(., pattern = ".xlsx", replacement = "_metadata.csv")
     })
     
-    template_url <- "https://raw.githubusercontent.com/f-neri/FASTR/main/inst/extdata/plate-metadata.csv"
+    template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv"
     
     output$download_metadata <- downloadHandler(
       filename = function() if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files

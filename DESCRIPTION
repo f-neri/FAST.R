@@ -1,4 +1,4 @@
-Package: FASTR
+Package: FAST.R
 Title: Analyze and Visualize FAST-Generated Data
 Version: 0.0.0.9000
 Authors@R: 
@@ -31,5 +31,5 @@ Imports:
     tidyr,
     waiter,
     zip
-URL: https://github.com/f-neri/FASTR
-BugReports: https://github.com/f-neri/FASTR/issues
+URL: https://github.com/f-neri/FAST.R
+BugReports: https://github.com/f-neri/FAST.R/issues
