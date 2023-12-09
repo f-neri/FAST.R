@@ -4,6 +4,8 @@
 # FAST.R
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/f-neri/FAST-R_2.0/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/f-neri/FAST-R_2.0/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of FAST.R is to launch a user-friendly R shiny app to perform
