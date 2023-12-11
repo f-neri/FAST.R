@@ -30,17 +30,17 @@ plot_percentages <- function(data,
   
   # create grouped df
   df_percentages_summary <- df_percentages %>%
-    dplyr::group_by(Condition, Positivity, !!!dplyr::syms(additional_variables)) %>%
-    dplyr::summarise(Percentage = mean(Percentage)) %>%
+    dplyr::group_by(.data$Condition, .data$Positivity, !!!dplyr::syms(additional_variables)) %>%
+    dplyr::summarise(Percentage = mean(.data$Percentage)) %>%
     dplyr::ungroup()
   
   
   # generate stacked plot
-  ggplot(df_percentages_summary, aes(x = Percentage, y = Condition, fill = Positivity)) +
+  ggplot(df_percentages_summary, aes(x = .data$Percentage, y = .data$Condition, fill = .data$Positivity)) +
     geom_col(position = "fill") +
     labs(title = "Overall % of SA-\u03B2-Gal+/- EdU+/- Cells",
          y = "Condition") +
-    geom_text(aes(label = ifelse(Percentage <= 0.10, "", scales::percent(Percentage, accuracy = 1.0))),
+    geom_text(aes(label = ifelse(.data$Percentage <= 0.10, "", scales::percent(.data$Percentage, accuracy = 1.0))),
               position = position_fill(vjust = 0.5),
               size = size_axis_text/3) +
     scale_x_continuous(labels = scales::percent, name = NULL, breaks = NULL) +
