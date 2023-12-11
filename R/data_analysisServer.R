@@ -23,7 +23,7 @@ data_analysisServer <- function(id) {
     # download plate metadata template
     template_names <- reactive({
       input$Image_Analyst_output$name %>%
-        stringr::str_replace_all(., pattern = ".xlsx", replacement = "_metadata.csv")
+        stringr::str_replace_all(pattern = ".xlsx", replacement = "_metadata.csv")
     })
     
     template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv"
@@ -131,7 +131,7 @@ data_analysisServer <- function(id) {
         dplyr::arrange(.data$metadata_name)
       
       plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
-        gsub(pattern = "_metadata.csv", replacement = ".xlsx", .)
+        gsub(pattern = "_metadata.csv", replacement = ".xlsx")
       
       if ( any(IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name) ) {
         enable_button_analysis()
@@ -160,7 +160,7 @@ data_analysisServer <- function(id) {
         Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i],
                                                            well_ids_column = "well",    # name to give column of well IDs
                                                            sep = ",") %>%               # separator used in the csv file
-          dplyr::select(dplyr::where(~ !all(is.na(.)))) # remove columns whose values are all NA
+          dplyr::select(dplyr::where(~ !all(is.na(.x)))) # remove columns whose values are all NA
         
         # adjust metadata variable names
         names(Input_files$metadata_df[[i]]) <- names(Input_files$metadata_df[[i]]) %>%
@@ -226,10 +226,10 @@ data_analysisServer <- function(id) {
         Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
         
         # check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
-        n_channels <- Input_files$IAoutput_df[[i]] %>% .$Channel %>% unique() %>% length()
+        n_channels <- Input_files$IAoutput_df[[i]]$Channel %>% unique() %>% length()
         number_wells_IAoutput <- nrow( Input_files$IAoutput_df[[i]] ) / n_channels
         
-        number_wells_metadata <- Input_files$metadata_df[[i]] %>% .$well %>% length()
+        number_wells_metadata <- Input_files$metadata_df[[i]]$well %>% length()
         
         if (number_wells_IAoutput != number_wells_metadata) {
           enable_button_analysis()

@@ -7,6 +7,7 @@
 #' @import shiny
 #' @import ggplot2
 #' @import magrittr
+#' @importFrom RColorBrewer brewer.pal.info
 #' @return Launches an R shiny app to analyze and visualize data generated with the FAST workflow
 #' @export
 #'
