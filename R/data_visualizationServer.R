@@ -146,17 +146,17 @@ data_visualizationServer <- function(id) {
     df_single_cell <- reactive({
       
       df_single_cell <- if (input$remove_background == TRUE) { # remove background cells/wells
-        dplyr::filter(single_cell_data_df(), !stringr::str_detect(Condition, "_background"))
+        dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
       } else {
         single_cell_data_df()
       }
       
       df_single_cell <- df_single_cell %>%
         dplyr::mutate(dplyr::across(dplyr::all_of(additional_variables()), factor)) %>% # change add_vars into factors
-        dplyr::filter(SABGal > 0, EdU > 0) %>% # remove negative values
+        dplyr::filter(.data$SABGal > 0, .data$EdU > 0) %>% # remove negative values
         dplyr::mutate( # calculate log10 values
-          SABGal_log10 = log10(SABGal),
-          EdU_log10 = log10(EdU)
+          SABGal_log10 = log10(.data$SABGal),
+          EdU_log10 = log10(.data$EdU)
         )
       
       # return single cell df
@@ -170,7 +170,7 @@ data_visualizationServer <- function(id) {
       
       # remove background cells/wells
       df <- if (input$remove_background == TRUE) {
-        dplyr::filter(analysis_report_df(), !stringr::str_detect(Condition, "_background"))
+        dplyr::filter(analysis_report_df(), !stringr::str_detect(.data$Condition, "_background"))
       } else {
         analysis_report_df()
       }
@@ -192,8 +192,8 @@ data_visualizationServer <- function(id) {
                              additional_variables = additional_variables()
                              ) %>%
         dplyr::mutate(
-          SABGal_threshold_average_log10 = log10(SABGal_threshold_average),
-          EdU_threshold_average_log10 = log10(EdU_threshold_average)
+          SABGal_threshold_average_log10 = log10(.data$SABGal_threshold_average),
+          EdU_threshold_average_log10 = log10(.data$EdU_threshold_average)
         )
     })
     
@@ -235,7 +235,7 @@ data_visualizationServer <- function(id) {
       # create duplicate df with values adjusted based on dpi
       df_duplicate <- df %>%
         dplyr::mutate(version = "dpi_adj",
-                      value = value * dpi()/72)
+                      value = .data$value * dpi()/72)
       
       # merge dfs
       df <- dplyr::bind_rows(df, df_duplicate)
