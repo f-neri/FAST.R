@@ -50,7 +50,7 @@ tidy_IAoutput <- function(data,
   
   tidy_data1 <- tidy_data1 %>%
     dplyr::mutate(well = stringr::str_extract(well, "[A-Za-z]\\d{2}")) %>%
-    dplyr::select(well, cell_ID,everything()) # rearrange column order
+    dplyr::select(well, cell_ID, dplyr::everything()) # rearrange column order
   
   # pivot_wider()
   

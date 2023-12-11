@@ -417,7 +417,7 @@ data_visualizationServer <- function(id) {
     
     output$download_single_cell_SABGal_EdU_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".grDevices::png")
+        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".png")
       },
       content = function(file) {
         grDevices::png(file,
@@ -440,7 +440,7 @@ data_visualizationServer <- function(id) {
     
     output$download_percentages <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_percentages",  ".grDevices::png")
+        paste0(Sys.Date(), "_percentages",  ".png")
       },
       content = function(file) {
         grDevices::png(file,
@@ -463,7 +463,7 @@ data_visualizationServer <- function(id) {
     
     output$download_median_SABGal_EdU_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".grDevices::png")
+        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".png")
       },
       content = function(file) {
         grDevices::png(file,
@@ -486,7 +486,7 @@ data_visualizationServer <- function(id) {
     
     output$download_well_percentages <- downloadHandler( # download
       filename = function() {
-        paste0(Sys.Date(), "_well_percentages",  ".grDevices::png")
+        paste0(Sys.Date(), "_well_percentages",  ".png")
       },
       content = function(file) {
         grDevices::png(file,
@@ -513,7 +513,7 @@ data_visualizationServer <- function(id) {
         
         output$download_median_SABGal_EdU_staining_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".grDevices::png")
+            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".png")
           },
           content = function(file) {
             grDevices::png(file,
@@ -536,7 +536,7 @@ data_visualizationServer <- function(id) {
         
         output$download_well_percentages_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_well_percentages_comparison",  ".grDevices::png")
+            paste0(Sys.Date(), "_well_percentages_comparison",  ".png")
           },
           content = function(file) {
             grDevices::png(file,

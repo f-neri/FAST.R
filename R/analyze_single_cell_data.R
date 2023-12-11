@@ -168,7 +168,7 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   
   # join plate_df with summary df
   summary_df <- dplyr::left_join(summary_df, plate_df) %>%
-    dplyr::select(plate, everything()) # rearrange plate to be 1st column
+    dplyr::select(plate, dplyr::everything()) # rearrange plate to be 1st column
   
   # Rename additional_variables with original names -------------------------
   
