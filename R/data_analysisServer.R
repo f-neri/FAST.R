@@ -122,13 +122,13 @@ data_analysisServer <- function(id) {
         IAoutput_name = input$Image_Analyst_output$name,
         IAoutput_datapath = input$Image_Analyst_output$datapath
       ) %>%
-        dplyr::arrange(IAoutput_name)
+        dplyr::arrange(.data$IAoutput_name)
       
       plate_metadata_files <- tibble::tibble(
         metadata_name = input$plate_metadata$name,
         metadata_datapath = input$plate_metadata$datapath
       ) %>%
-        dplyr::arrange(metadata_name)
+        dplyr::arrange(.data$metadata_name)
       
       plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
         gsub(pattern = "_metadata.csv", replacement = ".xlsx", .)
@@ -266,7 +266,7 @@ data_analysisServer <- function(id) {
         
         df <- df %>%
           dplyr::mutate(plate = Input_files$IAoutput_name[i]) %>% # add plate name
-          dplyr::select(plate, well, cell_ID, dplyr::all_of(variable_names), dplyr::everything()) # rearrange
+          dplyr::select(.data$plate, .data$well, .data$cell_ID, dplyr::all_of(variable_names), dplyr::everything()) # rearrange
         
         # return df
         Input_files$tidy_df[[i]] <- df
