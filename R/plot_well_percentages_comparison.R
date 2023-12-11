@@ -4,15 +4,15 @@ plot_well_percentages_comparison <- function(data,
                                              other_add_var) {
   
   ggplot(data,
-         aes(percentage_SABGal_positive, percentage_EdU_positive)
+         aes(.data$percentage_SABGal_positive, .data$percentage_EdU_positive)
          ) +
     geom_point(
       shape = 21,
       color = "black",
       aes(fill = !!dplyr::sym(comparison_var)),
       size = 3) +
-    {if (length(other_add_var) == 0) facet_grid(cols = vars(Condition))} +
-    {if (length(other_add_var) == 1) facet_grid(cols = vars(Condition),
+    {if (length(other_add_var) == 0) facet_grid(cols = vars(.data$Condition))} +
+    {if (length(other_add_var) == 1) facet_grid(cols = vars(.data$Condition),
                                                 rows = vars(!!dplyr::sym(other_add_var)))} +
     scale_x_continuous(
       limits = c(0,1),

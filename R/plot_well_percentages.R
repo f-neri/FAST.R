@@ -3,12 +3,12 @@ plot_well_percentages <- function(data,
                                   scale_fill_brewer) {
   
   ggplot2::ggplot(data,
-                  ggplot2::aes(percentage_SABGal_positive, percentage_EdU_positive)
+                  ggplot2::aes(.data$percentage_SABGal_positive, .data$percentage_EdU_positive)
                   ) +
     ggplot2::geom_point(
       shape = 21,
       color = "black",
-      ggplot2::aes(fill = Condition),
+      ggplot2::aes(fill = .data$Condition),
       size = 3) +
     {if (length(add_vars) == 1)
       ggplot2::facet_grid(cols = ggplot2::vars(!!dplyr::sym(add_vars[1]))) } +
