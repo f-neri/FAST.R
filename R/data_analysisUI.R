@@ -100,35 +100,35 @@ data_analysisUI <- function(id) {
     fluidRow(
       column(12, align = "center",
              br(),
-             textOutput(NS(id, "analysis_report_message"))
+             textOutput(NS(id, "analysis_report_message")),
+             br(),
       )
     ),
     
     # show tidied single cell & analysis report tables
-    fluidRow(
-      column(10, offset = 1, align = "center",
-             br(), br(), br(),
-             div(textOutput(NS(id, "df_single_cell_title")),
-                 style = "font-size: 16pt"),
-             br(),
-             DT::dataTableOutput(NS(id, "df_single_cell"))
-      ),
-      div(id = NS(id)("download_sc_data_panel"), # NS call of entire row needed to hide download button
+    div(id = NS(id)("sc_and_analysis_report_panel"),
+        fluidRow(
           column(10, offset = 1, align = "center",
-                 downloadButton(NS(id, "download_sc_data"), label = "Download Single-Cell Data"))
-          ),
-      column(10, offset = 1, align = "center",
-             br(), br(), br(),
-             div(textOutput(NS(id, "analysis_report_title")),
-                 style = "font-size: 16pt"),
-             br(),
-             DT::dataTableOutput(NS(id, "df_analysis_report"))
-      ),
-      div(id = NS(id)("download_analysis_report_panel"), # NS call of entire row needed to hide download button
+                 br(), hr(),
+                 div(textOutput(NS(id, "df_single_cell_title")),
+                     style = "font-size: 16pt"),
+                 br(),
+                 DT::dataTableOutput(NS(id, "df_single_cell"))
+                 ),
           column(10, offset = 1, align = "center",
-                 downloadButton(NS(id, "download_analysis_report"), label = "Download Analysis Report"))
-      )
-    )
-    
+                 downloadButton(NS(id, "download_sc_data"), label = "Download Single-Cell Data")
+                 ),
+          column(10, offset = 1, align = "center",
+                 br(), hr(),
+                 div(textOutput(NS(id, "analysis_report_title")),
+                     style = "font-size: 16pt"),
+                 br(),
+                 DT::dataTableOutput(NS(id, "df_analysis_report"))
+                 ),
+          column(10, offset = 1, align = "center",
+                 downloadButton(NS(id, "download_analysis_report"), label = "Download Analysis Report"),
+                 br(), br(), br()
+                 )
+        ))
   )
 }

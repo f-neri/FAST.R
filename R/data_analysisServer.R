@@ -86,13 +86,9 @@ data_analysisServer <- function(id) {
       
       # disable button_analysis while computing, and update message
       shinyjs::disable("button_analysis")
-      updateActionButton(inputId = "button_analysis", label = "Checking uploaded files...", icon = icon("sync", class = "fa-spin")) # not working
       
       # disable table outputs w/ shinyjs
-      hide_multiple_ids(c("df_single_cell_title",
-                          "df_single_cell",
-                          "analysis_report_title",
-                          "df_analysis_report"))
+      shinyjs::hide("sc_and_analysis_report_panel")
       
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
@@ -306,16 +302,23 @@ data_analysisServer <- function(id) {
       analysis_report() # creates dependency on analysis_report() output
       
       # turn output tables visible w/ shinyjs
-      show_multiple_ids(c("df_single_cell_title",
-                          "df_single_cell",
-                          "analysis_report_title",
-                          "df_analysis_report",
-                          "download_sc_data"))
+      shinyjs::show("sc_and_analysis_report_panel")
       
       # return empty text if all good
       ""
     }) %>%
       bindEvent(input$button_analysis)
+    
+    # Hide output panel on load
+    
+    shinyjs::hide("sc_and_analysis_report_panel")
+    
+    # Show output panel upon calculation of single_cell_data() and analysis_report()
+    observe({
+      shinyjs::show("sc_and_analysis_report_panel")
+    }) %>%
+      bindEvent(single_cell_data(),
+                analysis_report())
     
     # Output tidied single cell data ------------------------------------------
     output$df_single_cell_title <- renderText({
@@ -349,18 +352,6 @@ data_analysisServer <- function(id) {
         utils::write.csv(single_cell_data(), file, row.names = FALSE)
       }
     )
-    
-    # disable download button on app load
-    shinyjs::disable("download_sc_data")
-    shinyjs::hide("download_sc_data_panel")
-    
-    # enable download button upon calculation of single_cell_data()
-    observe({
-      shinyjs::enable("download_sc_data")
-      shinyjs::show("download_sc_data_panel")
-      
-    }) %>%
-      bindEvent(single_cell_data())
     
     # Output analysis report --------------------------------------------------
     
@@ -420,16 +411,6 @@ data_analysisServer <- function(id) {
       }
     )
     
-    # disable download button on app load
-    shinyjs::disable("download_analysis_report")
-    shinyjs::hide("download_analysis_report_panel")
     
-    # enable download button upon calculation of single_cell_data()
-    observe({
-      shinyjs::enable("download_analysis_report")
-      shinyjs::show("download_analysis_report_panel")
-    }) %>%
-      bindEvent(analysis_report())
-    
-    })
-}
+    }) # close moduleServer
+} # close data_analysisServer
