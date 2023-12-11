@@ -31,5 +31,5 @@ Imports:
     tidyr,
     waiter,
     zip
-URL: https://github.com/f-neri/FAST.R, https://f-neri.github.io/FAST.R/, https://github.com/f-neri/FAST-R_2.0
-BugReports: https://github.com/f-neri/FAST-R_2.0/issues
+URL: https://f-neri.github.io/FAST.R/, https://github.com/f-neri/FAST.R
+BugReports: https://github.com/f-neri/FAST.R/issues
