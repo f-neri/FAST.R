@@ -7,7 +7,7 @@
 FAST.R(Browser = FALSE)
 }
 \arguments{
-\item{Browser}{If TRUE, FAST.R will open in a browser window}
+\item{Browser}{Logical. If TRUE, FAST.R will open in a browser window}
 }
 \value{
 Launches an R shiny app to analyze and visualize data generated with the FAST workflow
