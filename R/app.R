@@ -4,6 +4,8 @@
 #' R shiny app to perform data analysis and visualization for the
 #' Fully Automated Senescence Test (FAST) workflow.
 #'
+#' @param Browser If TRUE, FAST.R will open in a browser window
+#'
 #' @import shiny
 #' @import ggplot2
 #' @import magrittr
@@ -12,14 +14,17 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{FAST.R()}
+#' if(interactive()){FAST.R()}
 
-FAST.R <- function() { # app needs to be wrapped in function to be used as package
+FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to be used as package
   
   . <- NULL # workaround to prevent an R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
   
   # Set file upload size limit to 20 MB
+  old_options <- options()
+  on.exit(options(old_options)) # ensures user options are restored upon exit
   options(shiny.maxRequestSize=20*1024^2)
+  
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(
@@ -54,7 +59,7 @@ ui <- fluidPage(
   # Title + paper link
   fluidRow(
     column(12,
-           h1("FAST Data Analysis & Visualization App", align = "center"), # add a(href = "link", "FAST"), and include link to paper once in place
+           h1("FAST Data Analysis & Visualization App", align = "center"), # TO ADD a(href = "link", "FAST")
            br()
            )
   ),
@@ -82,8 +87,6 @@ server <- function(input, output, session) {
   
   }
 
-
-
-shinyApp(ui, server) #, options =list(launch.browser = TRUE))
+shinyApp(ui, server, options = list(launch.browser = Browser))
 
 }

@@ -564,13 +564,6 @@ data_visualizationServer <- function(id) {
     }) %>%
       bindEvent(input$generate_graphs)
     
-    # Print message -----------------------------------------------------------
-    
-    observe({
-      print("")
-    }) %>%
-      bindEvent(input$generate_graphs)
-    
   })
   
 }

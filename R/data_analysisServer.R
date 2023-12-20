@@ -4,14 +4,9 @@ data_analysisServer <- function(id) {
 
 # Load IA output file -----------------------------------------------------
     
-    # observe: input IAoutput
-    observeEvent(input$Image_Analyst_output, {
-      message("\nImage Analyst output file:\n", input$Image_Analyst_output$name, ";\n\nFiles uploaded: ", length(input$Image_Analyst_output$name), "\n")
-    })
-    
     # check file extension is .xlsx
     
-    ## ADD CODE
+    ## TO ADD
     
 # Download plate metadata template ----------------------------------------
     
@@ -26,7 +21,7 @@ data_analysisServer <- function(id) {
         stringr::str_replace_all(pattern = ".xlsx", replacement = "_metadata.csv")
     })
     
-    template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv"
+    template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv" # TO CHANGE: RELATIVE INST PATH
     
     output$download_metadata <- downloadHandler(
       filename = function() if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
@@ -39,7 +34,6 @@ data_analysisServer <- function(id) {
       
       content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
         utils::download.file(template_url, destfile = file, method = "auto")
-        message("Downloaded plate metadata template: ", template_names(),"\n")
         
       } else { # multiple IAoutput and metadata files
         
@@ -53,7 +47,6 @@ data_analysisServer <- function(id) {
           suppressMessages(
             utils::download.file(template_url, destfile = file_paths[i], method = "auto")
           )
-          message("Downloaded plate metadata template: ", template_names()[i],"\n")
         }
         
         zip::zip(
@@ -66,14 +59,6 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
-    # Upload adjusted metadata ------------------------------------------------
-
-    # observe: input adjusted metadata
-    observeEvent(input$plate_metadata, {
-      message("\nAdjusted plate metadata file(s):\n", input$plate_metadata$name, ";\n")
-      message("File(s) uploaded: ", length(input$plate_metadata$name), "\n")
-    })
-    
     # DATA ANALYSIS -----------------------------------------------------------
     
     # check input files +
@@ -84,7 +69,7 @@ data_analysisServer <- function(id) {
       
       # Update UI ---------------------------------------------------------------
       
-      # disable button_analysis while computing, and update message
+      # disable button_analysis while computing
       shinyjs::disable("button_analysis")
       
       # disable table outputs w/ shinyjs
@@ -95,22 +80,10 @@ data_analysisServer <- function(id) {
       
       # Read and check input files -------------------------------------------------------
       
-      # --- MOVE FILE READING AND CHECKING INTO MODULE ---
+      # --- MOVE FILE READING AND CHECKING INTO FUNCTIONS for testing ---
       
-      ## check that an equal number of IAoutput and metadata files have been uploaded
-      if (length(input$Image_Analyst_output$name) != length(input$plate_metadata$name)) {
-        enable_button_analysis()
-        validate(paste0(
-          "ERROR: Mismatch in number of files uploaded
-          
-          The number of uploaded Image Analyst output files must equal the number of uploaded adjusted metadata files.
-          Verify that each Image Analyst output (.xlsx) file has a corresponding metadata (.csv) file.
-          
-          uploaded Image Analyst output files: ", length(input$Image_Analyst_output$name),"
-          uploaded Adjusted metadata files: ", length(input$plate_metadata$name)
-        )
-        )
-      }
+      check_file_numbers_match(input$Image_Analyst_output$name,
+                               input$plate_metadata$name)
       
       ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
       
@@ -163,7 +136,10 @@ data_analysisServer <- function(id) {
           make.names()
         
         # check that metadata has a variable named Condition
-        if ( !(any(grepl("^condition$", names(Input_files$metadata_df[[i]]), ignore.case = TRUE))) ) { # if metadata does NOT have Condition column
+        
+        names(Input_files$metadata_df[[i]])[grepl("^(?i)(condition)$", names(Input_files$metadata_df[[i]]))] <- "Condition" # set Condition capitalization
+        
+        if ( !(any(grepl("^Condition$", names(Input_files$metadata_df[[i]])))) ) { # if metadata does NOT have Condition column
           enable_button_analysis()
           validate(
             paste0(

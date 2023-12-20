@@ -14,5 +14,5 @@ R shiny app to perform data analysis and visualization for the
 Fully Automated Senescence Test (FAST) workflow.
 }
 \examples{
-\dontrun{FAST.R()}
+if(interactive()){FAST.R()}
 }

@@ -7,9 +7,6 @@ tidy_IAoutput <- function(data,
   
   IAoutput <- data
   
-  # set Condition capitalization
-  names(IAoutput)[grepl("^(?i)(condition)$", names(IAoutput))] <- "Condition"
-  
   # change Plot_Name/Name column name to well
   IAoutput <- if ( any(colnames(IAoutput) %in% "Plot Name") ) {
     IAoutput %>% dplyr::rename(well = "Plot Name")
@@ -58,8 +55,6 @@ tidy_IAoutput <- function(data,
     tidyr::pivot_wider(names_from = .data$Measured_Parameter,
                        values_from = .data$Signal_Intensity) %>%
     stats::na.omit() # remove cells that had with blank/NA signal intensities in IAoutput file
-  
-  print("completed tidying IA output")
   
   tidy_data2
 }
