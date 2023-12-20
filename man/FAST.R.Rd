@@ -4,7 +4,10 @@
 \alias{FAST.R}
 \title{FAST.R: Analyze and Visualize FAST-Generated Data}
 \usage{
-FAST.R()
+FAST.R(Browser = FALSE)
+}
+\arguments{
+\item{Browser}{If TRUE, FAST.R will open in a browser window}
 }
 \value{
 Launches an R shiny app to analyze and visualize data generated with the FAST workflow
