@@ -4,7 +4,7 @@
 #' R shiny app to perform data analysis and visualization for the
 #' Fully Automated Senescence Test (FAST) workflow.
 #'
-#' @param Browser If TRUE, FAST.R will open in a browser window
+#' @param Browser Logical. If TRUE, FAST.R will open in a browser window
 #'
 #' @import shiny
 #' @import ggplot2
@@ -19,6 +19,9 @@
 FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to be used as package
   
   . <- NULL # workaround to prevent an R CMD note (see https://github.com/Rdatatable/data.table/issues/5436)
+  
+  # check arguments
+  stopifnot(is.logical(Browser))
   
   # Set file upload size limit to 20 MB
   old_options <- options()
