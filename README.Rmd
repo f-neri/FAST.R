@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 # FAST.R <a href="https://f-neri.github.io/FAST.R/"><img src="man/figures/logo.png" align="right" height="138" alt="FAST.R website" /></a>
-
+<br>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/f-neri/FAST.R/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/f-neri/FAST.R/actions/workflows/R-CMD-check.yaml)
