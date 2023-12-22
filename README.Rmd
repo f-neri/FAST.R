@@ -8,13 +8,12 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  fig.path = "man/figures/README-"
 )
 ```
 
 # FAST.R <a href="https://f-neri.github.io/FAST.R/"><img src="man/figures/logo.png" align="right" height="138" alt="FAST.R website" /></a>
-<br>
+<br><br>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/f-neri/FAST.R/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/f-neri/FAST.R/actions/workflows/R-CMD-check.yaml)

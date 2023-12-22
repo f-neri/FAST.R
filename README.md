@@ -3,7 +3,7 @@
 
 # FAST.R <a href="https://f-neri.github.io/FAST.R/"><img src="man/figures/logo.png" align="right" height="138" alt="FAST.R website" /></a>
 
-<br>
+<br><br>
 
 <!-- badges: start -->
 
