@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# FAST.R
+# FAST.R <a href="https://f-neri.github.io/FAST.R/"><img src="man/figures/logo.png" align="right" height="138" alt="FAST.R website" /></a>
 
 <!-- badges: start -->
 
