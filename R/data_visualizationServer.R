@@ -402,9 +402,83 @@ data_visualizationServer <- function(id) {
     }) %>%
       bindEvent(input$analysis_report_df$datapath, input$single_cell_data_df$datapath)
     
+    # Download all graphs button ----------------------------------------------
     
+    output$download_all_graphs <- downloadHandler(
+      filename = function() {
+        paste0("FAST.R_graphs_", Sys.Date(), ".zip")
+      },
+      
+      content = function(file) {
+        
+        temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
+        dir.create(temp_directory)
+        
+        # single cell SABGal EdU
+        grDevices::png(file.path(temp_directory, "single_cell_SABGal_EdU_staining.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$single_cell_SABGal_EdU_staining)
+        grDevices::dev.off()
+        
+        # percentages
+        grDevices::png(file.path(temp_directory, "percentages.png"),
+                       width = get_dim(dims_plot(), "width_percentages", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height_percentages", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$percentages)
+        grDevices::dev.off()
+        
+        # median_SABGal_EdU_staining
+        grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_SABGal_EdU_staining)
+        grDevices::dev.off()
+        
+        # well percentages
+        grDevices::png(file.path(temp_directory, "well_percentages.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$well_percentages)
+        grDevices::dev.off()
+        
+        # Comparison plots
+        if (input$generate_comparison_graphs == TRUE) {
+          
+          # median SABGal EdU staining comparison
+          grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining_comparison.png"),
+                         width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
+                         height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
+                         res = input$dpi)
+          print(graphs()$median_SABGal_EdU_staining_comparison)
+          grDevices::dev.off()
+          
+          # well percentages comparison
+          grDevices::png(file.path(temp_directory, "well_percentages_comparison.png"),
+                         width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
+                         height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
+                         res = input$dpi)
+          print(graphs()$well_percentages_comparison)
+          grDevices::dev.off()
+          
+        } 
+        
+        
+        zip::zip(
+          zipfile = file,
+          files = dir(temp_directory),
+          root = temp_directory
+        )
+        
+      },
+      contentType = "application/zip"
+    )
     
-    # Render and download button for all graphs -----------------------------------------------------------
+    # Render and download buttons for all graphs -----------------------------------------------------------
     
     # single cell SABGal EdU
     output$single_cell_SABGal_EdU_staining <- renderPlot({ # plot
