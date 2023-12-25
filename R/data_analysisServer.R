@@ -72,11 +72,11 @@ data_analysisServer <- function(id) {
       # disable button_analysis while computing
       shinyjs::disable("button_analysis")
       
-      # disable table outputs w/ shinyjs
-      shinyjs::hide("sc_and_analysis_report_panel")
-      
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
+      
+      # disable table outputs w/ shinyjs
+      shinyjs::hide("sc_and_analysis_report_panel")
       
       # Read and check input files -------------------------------------------------------
       
