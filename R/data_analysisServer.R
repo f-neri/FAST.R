@@ -2,12 +2,6 @@ data_analysisServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
 
-# Load IA output file -----------------------------------------------------
-    
-    # check file extension is .xlsx
-    
-    ## TO ADD
-    
 # Download plate metadata template ----------------------------------------
     
     # toggle download_metadata button after data upload
@@ -59,11 +53,8 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
-    # DATA ANALYSIS -----------------------------------------------------------
-    
-    # check input files +
-    # tidy IAouput and merge with metadata
-    single_cell_data <- reactive({
+    # Load files --------------------------------------------------------------
+    Input_files <- reactive({
       
       req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold)
       
@@ -99,10 +90,14 @@ data_analysisServer <- function(id) {
         dplyr::arrange(.data$metadata_name)
       
       ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
+      plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
+        gsub(pattern = "_metadata.csv", replacement = ".xlsx")
+      
       check_IAoutput_has_metadata(IAoutput_files, plate_metadata_files)
       
       ## create input file table
-      Input_files <- dplyr::full_join(IAoutput_files, plate_metadata_files)
+      Input_files <- dplyr::full_join(IAoutput_files, plate_metadata_files) %>%
+        suppressMessages()
       
       ## read and check metadata files
       Input_files$metadata_df <- vector(mode = "list", length = nrow(Input_files)) # empty list-column to store metadata
@@ -205,7 +200,22 @@ data_analysisServer <- function(id) {
         }  
       }
       
-      # tidy IAoutput and merge with metadata -----------------------------------
+      Input_files
+    }) %>%
+      bindCache(input$Image_Analyst_output$datapath,
+                input$plate_metadata$datapath,
+                input$background_threshold) %>%
+      bindEvent(input$button_analysis)
+    
+    # DATA ANALYSIS -----------------------------------------------------------
+    
+    # check input files +
+    # tidy IAouput and merge with metadata
+    single_cell_data <- reactive({
+      
+      Input_files <- Input_files()
+      
+     # tidy IAoutput and merge with metadata -----------------------------------
 
       Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
       

@@ -1,7 +1,4 @@
 check_IAoutput_has_metadata <- function(IAoutput_files, plate_metadata_files) {
-  plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
-    gsub(pattern = "_metadata.csv", replacement = ".xlsx")
-  
   if ( any(IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name) ) {
     enable_button_analysis()
     validate(
