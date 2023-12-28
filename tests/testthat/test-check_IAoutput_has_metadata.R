@@ -4,9 +4,13 @@ test_that("IAoutput_has_metadata check works", {
                                                        "IA-output_10x_prw15_230407.xlsx"))
     plate_metadata_files <- tibble::tibble(metadata_name = c("ABT263_2023-0329_no9uM_metadata.csv",
                                                              "IA-output_10x_prw15_230407_metadata.csv"))
+    
+    plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
+      gsub(pattern = "_metadata.csv", replacement = ".xlsx")
+    
     expect_silent(check_IAoutput_has_metadata(IAoutput_files, plate_metadata_files))
     
-    plate_metadata_files$metadata_name <- ""
+    plate_metadata_files$IAoutput_name <- ""
     expect_error(check_IAoutput_has_metadata(IAoutput_files, plate_metadata_files), "ERROR: Mismatch in file names")
   })
 })
