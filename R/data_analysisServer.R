@@ -85,8 +85,7 @@ data_analysisServer <- function(id) {
       check_file_numbers_match(input$Image_Analyst_output$name,
                                input$plate_metadata$name)
       
-      ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
-      
+      ## create IAoutput and plate_metadata tibbles
       IAoutput_files <- tibble::tibble(
         IAoutput_name = input$Image_Analyst_output$name,
         IAoutput_datapath = input$Image_Analyst_output$datapath
@@ -99,23 +98,8 @@ data_analysisServer <- function(id) {
       ) %>%
         dplyr::arrange(.data$metadata_name)
       
-      plate_metadata_files$IAoutput_name <- plate_metadata_files$metadata_name %>%
-        gsub(pattern = "_metadata.csv", replacement = ".xlsx")
-      
-      if ( any(IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name) ) {
-        enable_button_analysis()
-        validate(
-          paste0(
-          "ERROR: Mismatch in file names
-          
-          For each Image Analyst output file uploaded, an adjusted plate metadata file with the same name + \"_metadata\" must also be uploaded.
-          Verify that each Image_Analyst_output.xlsx file has a corresponding Image_Analyst_output_metadata.csv file.
-          
-          uploaded Image Analyst output file: ", paste(c(IAoutput_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]), collapse=", "),"
-          uploaded Adjusted metadata file: ", paste(c(plate_metadata_files$IAoutput_name[IAoutput_files$IAoutput_name != plate_metadata_files$IAoutput_name]), collapse=", ")
-          )
-        )
-      }
+      ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
+      check_IAoutput_has_metadata(IAoutput_files, plate_metadata_files)
       
       ## create input file table
       Input_files <- dplyr::full_join(IAoutput_files, plate_metadata_files)
