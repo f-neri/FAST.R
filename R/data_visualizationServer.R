@@ -26,26 +26,32 @@ data_visualizationServer <- function(id) {
     # check analysis report data format
     ## TO ADD
     
-    # check sinlge-cell file matches analysis report file
-    ## TO ADD
-    
     # Show upload error messages ----------------------------------------------
     output$upload_message <- renderText({
+      
+      # check sinlge-cell file matches analysis report file
+      if (sort(unique(single_cell_data_df()$plate)) != sort(unique(analysis_report_df()$plate))) {
+        validate(
+          paste(
+            "ERROR: mismatch between Single Cell Data and Analysis Report files
+          
+          Ensure to load single cell and analysis report files generated from the same plate(s)"
+          )
+        )
+      }
+      
+      # show graph control widgets and example graphs
+      shinyjs::show("graphs_control_widgets") # show after clicking Next
+      shinyjs::show("example_graphs")
+      
       # return empty text if all good
       ""
     }) %>%
-      bindEvent(names(analysis_report_df()),
-                names(single_cell_data_df()))
+      bindEvent(input$next_button)
     
     # Graphs control widgets handler ----------------------------------------------
     shinyjs::hide("graphs_control_widgets") # hide by default
     shinyjs::hide("example_graphs")
-    
-    observe({
-      shinyjs::show("graphs_control_widgets") # show after clicking Next
-      shinyjs::show("example_graphs")
-    }) %>%
-      bindEvent(input$next_button)
     
     observe({
       shinyjs::hide("graphs_control_widgets") # hide if analysis report or single cell data change
