@@ -1,13 +1,14 @@
 data_analysisServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
-
-# Download plate metadata template ----------------------------------------
+    # Update UI: plate metadata template ----------------------------------------
     
     # toggle download_metadata button after data upload
     observe({
       shinyjs::toggleState(id = "download_metadata", condition = input$Image_Analyst_output)
     })
+    
+    # Handler download_metadata -----------------------------------------------
     
     # download plate metadata template
     template_names <- reactive({
@@ -53,6 +54,8 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
+    # DATA ANALYSIS -----------------------------------------------------------
+    
     # Load files --------------------------------------------------------------
     Input_files <- reactive({
       
@@ -79,9 +82,8 @@ data_analysisServer <- function(id) {
                 input$background_threshold) %>%
       bindEvent(input$button_analysis)
     
-    # DATA ANALYSIS -----------------------------------------------------------
+    # Generate single_cell_data table -----------------------------------------------------------
     
-    # check input files +
     # tidy IAouput and merge with metadata
     single_cell_data <- reactive({
       
@@ -121,8 +123,9 @@ data_analysisServer <- function(id) {
                 input$background_threshold) %>%
       bindEvent(input$button_analysis)
     
-
-# DATA ANALYSIS OUTPUT ----------------------------------------------------
+    # OUTPUT ------------------------------------------------------------------
+    
+    # error message -----------------------------------------------------------
     
     # Print data analysis message
     output$analysis_report_message <- renderText({
@@ -147,7 +150,7 @@ data_analysisServer <- function(id) {
       bindEvent(single_cell_data(),
                 analysis_report())
     
-    # Output tidied single cell data ------------------------------------------
+    # single cell data ------------------------------------------
     output$df_single_cell_title <- renderText({
       single_cell_data()
       "Single Cell Data"
@@ -180,7 +183,7 @@ data_analysisServer <- function(id) {
       }
     )
     
-    # Output analysis report --------------------------------------------------
+    # analysis report --------------------------------------------------
     
     ## table title
     output$analysis_report_title <- renderText({
