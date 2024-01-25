@@ -1,3 +1,5 @@
+# FAST.R (development version)
+
 # FAST.R 0.1.3
 
 * Fixed `FAST.R(Browser = FALSE)` to correctly open the app in a new RStudio window
