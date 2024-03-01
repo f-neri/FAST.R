@@ -1,11 +1,11 @@
 Condition,1,2,3,4,5,6,7,8,9,10,11,12
 A,,,,,,,,,,,,
-B,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
-C,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
-D,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
-E,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
-F,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
-G,,IR_background,IR,IR,IR,IR,CTL,CTL,CTL,CTL,CTL_background,
+B,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
+C,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
+D,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
+E,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
+F,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
+G,,SEN_background,SEN,SEN,SEN,SEN,CTL,CTL,CTL,CTL,CTL_background,
 H,,,,,,,,,,,,
 ,,,,,,,,,,,,
 Variable2,1,2,3,4,5,6,7,8,9,10,11,12

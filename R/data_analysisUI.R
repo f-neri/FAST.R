@@ -40,16 +40,16 @@ data_analysisUI <- function(id) {
         column(3, offset = 3, align = "center",
                br(),
                br(),
-               downloadButton(NS(id, "download_metadata"), label = "Plate Metadata Template"),
+               downloadButton(NS(id, "download_metadata"), label = "Metadata Template"),
                br(),
                br()
         ),
         column(5, offset = 0,
-               p("Download the ", strong("Plate Metadata Template.csv file"), ", and modify it appropriately to include your metadata:"),
-               p("- In the first plate template (\"Condition\"), ", strong("add labels")," to differentiate your experimental conditions
+               p("Download the ", strong("Metadata Template.csv file"), ", and modify it appropriately to include your metadata:"),
+               p("- In the first microplate template (\"Condition\"), ", strong("add labels")," to differentiate your experimental conditions
            (e.g., IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
              (e.g., IR_background & Mock IR_background)."),
-               p("- ", em("Optional"), ": Labels for up to two additional variables can be added in the remaining plate
+               p("- ", em("Optional"), ": Labels for up to two additional variables can be added in the remaining microplate
              templates (e.g., different culturing media or varying concentrations of a drug treatment). Replace the
              placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g., \"Medium\" or \"DrugA (nM)\")."),
                br()
@@ -65,7 +65,7 @@ data_analysisUI <- function(id) {
         column(5, offset = 0,
                br(),
                br(),
-               p("Upload the ", strong("adjusted metadata file"), "."),
+               p("Upload the ", strong("Adjusted Metadata File"), "."),
                br()
         )
       ),
@@ -80,8 +80,8 @@ data_analysisUI <- function(id) {
         column(5, offset = 0,
                br(),
                p(em("Optional"), ": Adjust the ", strong("Background Threshold"), ".
-           This is the percentile value (0.90-1.00) used to calculate the staining
-             threshold from Background wells."),
+           This is the percentile value (0.90-1.00) used to calculate staining
+             thresholds from Background wells."),
                br()
         )
       ),

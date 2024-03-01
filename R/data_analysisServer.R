@@ -16,7 +16,11 @@ data_analysisServer <- function(id) {
         stringr::str_replace_all(pattern = ".xlsx", replacement = "_metadata.csv")
     })
     
-    template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv" # TO CHANGE: RELATIVE INST PATH
+    # download template from GitHub
+    ## template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv" # TO CHANGE: RELATIVE INST PATH
+    
+    # copy template from package directory
+    template_path <- system.file("extdata", "plate-metadata.csv", package = "FAST.R")
     
     output$download_metadata <- downloadHandler(
       filename = function() if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
@@ -28,7 +32,11 @@ data_analysisServer <- function(id) {
       },
       
       content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
-        utils::download.file(template_url, destfile = file, method = "auto")
+        # download template from GitHub
+        ## utils::download.file(template_url, destfile = file, method = "auto")
+        
+        # copy template from package directory
+        file.copy(template_path, file)
         
       } else { # multiple IAoutput and metadata files
         
@@ -40,7 +48,11 @@ data_analysisServer <- function(id) {
         for (i in seq_along(input$Image_Analyst_output$name)) {
           file_paths[i] <- file.path(temp_directory, template_names()[i])
           suppressMessages(
-            utils::download.file(template_url, destfile = file_paths[i], method = "auto")
+            # download template from GitHub
+            ## utils::download.file(template_url, destfile = file_paths[i], method = "auto")
+            
+            # copy template from package directory
+            file.copy(template_path, file_paths[i])
           )
         }
         
