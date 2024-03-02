@@ -22,14 +22,14 @@ test_that("files are correctly loaded and analyzed", {
     
     expect_equal(nrow(Input_files), 1)
     
-    expect_equal(Input_files$metadata_df[[1]] %>% names(), c("well", "Condition", "Serum"))
+    expect_equal(Input_files$metadata_df[[1]] %>% names(), c("well", "Condition", "Serum", "ML_Training"))
     expect_equal(Input_files$metadata_df[[1]] %>% nrow(), 60)
     
     
     # generate_single_cell_df
     single_cell_df <- generate_single_cell_df(Input_files)
     
-    expect_equal(single_cell_df %>% names(), c("plate", "well", "cell_ID", "Condition", "Serum", "Nuclear_Area", "DAPI", "EdU", "SABGal" ))
+    expect_equal(single_cell_df %>% names(), c("plate", "well", "cell_ID", "Condition", "Serum", "ML_Training", "Nuclear_Area", "DAPI", "EdU", "SABGal" ))
     expect_equal(single_cell_df %>% nrow(), 24119)
     
     # update background_threshold
@@ -39,7 +39,7 @@ test_that("files are correctly loaded and analyzed", {
     analysis_report <- analyze_single_cell_data(single_cell_df, input$background_threshold)
     
     expect_equal(analysis_report %>% names(),
-                 c("plate", "well", "Condition", "Serum", "cell_counts", "Nuclear_Area_min",
+                 c("plate", "well", "Condition", "ML_Training", "Serum", "cell_counts", "Nuclear_Area_min",
                    "Nuclear_Area_25th", "Nuclear_Area_median", "Nuclear_Area_75th",
                    "Nuclear_Area_max", "EdU_min", "EdU_25th", "EdU_median", "EdU_75th",
                    "EdU_max", "SABGal_min", "SABGal_25th", "SABGal_median", "SABGal_75th",
