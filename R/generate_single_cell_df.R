@@ -15,8 +15,63 @@ generate_single_cell_df <- function(Input_files) {
     variable_names <- names(Input_files$metadata_df[[i]])[-(names(Input_files$metadata_df[[i]]) == "well")]
     
     df <- df %>%
-      dplyr::mutate(plate = Input_files$IAoutput_name[i]) %>% # add plate name
-      dplyr::select(.data$plate, .data$well, .data$cell_ID, dplyr::all_of(variable_names), dplyr::everything()) # rearrange
+      # add plate name
+      dplyr::mutate(plate = Input_files$IAoutput_name[i]) %>%
+      # rearrange cols
+      dplyr::select(.data$plate, .data$well, .data$cell_ID, dplyr::all_of(variable_names), dplyr::everything())
+    
+    # Machine learning --------------------------------------------------------
+    
+    # check if Training metadata was provided
+    if (any(names(df) %in% "ML_Training")) {
+      
+      # train Random Forest model
+      ## generate training df
+      df_training <- df %>%
+        dplyr::filter(
+          # remove background wells
+          !stringr::str_detect(Condition, pattern = "_background"),
+          # filter for wells selected as + or - sample for training
+          ML_Training %in% c("+","-")
+        ) %>%
+        dplyr::mutate(
+          # turn ML_Training into a factor col
+          ML_Training = factor(ML_Training, levels = c("+", "-"))
+        )
+      
+      ## train a Random Forest model w/ the
+      ## carete package https://cran.r-project.org/web/packages/caret/vignettes/caret.html
+      
+      set.seed(123) # set seed to ensure reproducibility for model training and prediction
+      
+      RFmodel <-  caret::train(
+        x = df_training %>%
+          dplyr::select("Nuclear_Area", "EdU", "SABGal"),
+        y = df_training$ML_Training,
+        method = "rf",
+        preProc = c("center", "scale"),
+        trControl = caret::trainControl(
+          method = "repeatedcv",
+          number = 4,
+          repeats = 1,
+          verboseIter = TRUE
+        )
+      )
+      
+      # TO ADD: error message if the training fails and causes an error
+      
+      # predict +/-
+      df <- df %>%
+        dplyr::mutate(
+          # add predictions
+          ML_prediction = dplyr::case_when(
+            !stringr::str_detect(Condition, pattern = "_background") ~ stats::predict(RFmodel, newdata = df),
+            TRUE ~ NA
+          ) 
+        ) %>%
+        # rearrange cols
+        dplyr::select(1:which(names(.) == "ML_Training"), ML_prediction, dplyr::everything())
+    }
     
     # return df
     Input_files$tidy_df[[i]] <- df
