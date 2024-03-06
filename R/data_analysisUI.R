@@ -40,18 +40,25 @@ data_analysisUI <- function(id) {
         column(3, offset = 3, align = "center",
                br(),
                br(),
-               downloadButton(NS(id, "download_metadata"), label = "Metadata Template"),
                br(),
-               br()
+               br(),
+               br(),
+               br(),
+               downloadButton(NS(id, "download_metadata"), label = "Metadata Template")
         ),
         column(5, offset = 0,
-               p("Download the ", strong("Metadata Template.csv file"), ", and modify it appropriately to include your metadata:"),
+               p("Download the ", strong("Metadata Template.csv file"), ", and ", strong("modify it"), " appropriately to include your metadata:"),
                p("- In the first microplate template (\"Condition\"), ", strong("add labels")," to differentiate your experimental conditions
            (e.g., IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
              (e.g., IR_background & Mock IR_background)."),
                p("- ", em("Optional"), ": Labels for up to two additional variables can be added in the remaining microplate
              templates (e.g., different culturing media or varying concentrations of a drug treatment). Replace the
              placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g., \"Medium\" or \"DrugA (nM)\")."),
+               p("- ", em("Optional"), ": A machine learning (ML) approach to classify cells as senescent or non-senescent can be added to the analysis. To do so, modify the ", em(" ML_Training")," template to specify which wells to be used for training:"),
+               p("   ○ label with ",strong("\"+\""), " a few positive samples (i.e. wells where you are confident the great majority / >90% of cells are senescent);"),
+               p("   ○ label with ",strong("\"-\""), " a few negative samples (i.e. wells where you are confident the great majority / >90% of cells are NOT senescent);"),
+               p("The ML model will classify cells in all non-training wells as being senescent or not"),
+               p(strong("NOTE"), ": this additional ML analysis requires a ", em("significantly longer"), " time to complete (from a few seconds per plate without ML, to a few minutes per plate with ML)"),
                br()
         )
       ),

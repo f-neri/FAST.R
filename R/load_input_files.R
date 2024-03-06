@@ -43,6 +43,7 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     # check that metadata has a variable named Condition
     
     names(Input_files$metadata_df[[i]])[grepl("^(?i)(condition)$", names(Input_files$metadata_df[[i]]))] <- "Condition" # set Condition capitalization
+    names(Input_files$metadata_df[[i]])[grepl("^(?i)(ML_Training)$", names(Input_files$metadata_df[[i]]))] <- "ML_Training" # set Condition capitalization
     
     if ( !(any(grepl("^Condition$", names(Input_files$metadata_df[[i]])))) ) { # if metadata does NOT have Condition column
       enable_button_analysis()
@@ -61,13 +62,9 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     # check that metadata has max 2 additional variables
     add_var_names_indeces <- names(Input_files$metadata_df[[i]]) %>%
       # remove Condition and ML_Training
-      stringr::str_detect("(?i)(condition)|(?i)(ML_Training)|well", negate = TRUE)
+      stringr::str_detect("^Condition$|^ML_Training$|well", negate = TRUE)
     
     add_var_names <- names(Input_files$metadata_df[[i]])[add_var_names_indeces]
-    
-    message(add_var_names)
-    message(length(add_var_names))
-    message(length(add_var_names) > 2)
     
     if ( length(add_var_names) > 2 ) { 
       enable_button_analysis()

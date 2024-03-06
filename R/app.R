@@ -74,7 +74,10 @@ FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to b
                  data_analysisUI("data_analysis")),
         
         tabPanel("Data Visualization",
-                 data_visualizationUI("data_visualization"))
+                 data_visualizationUI("data_visualization")),
+        
+        tabPanel("Example Data",
+                 example_dataUI("example_data"))
       )
     )
   )
@@ -87,6 +90,8 @@ FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to b
     data_analysisServer("data_analysis")
     
     data_visualizationServer("data_visualization")
+    
+    example_dataServer("example_data")
     
   }
   

@@ -8,6 +8,10 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   # Identify additional variables
   additional_vars <- setdiff(names(df_single_cell_data), expected_variables)
   
+  additional_vars_noMLTraining <- setdiff(names(df_single_cell_data), expected_variables) %>%
+    # remove ML cols if present
+    .[stringr::str_detect(., "ML_Training|ML_Prediction", negate = TRUE)]
+  
   # Initialize variables to store original names
   additional_variable_1 <- NULL
   additional_variable_2 <- NULL
@@ -16,9 +20,9 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   additional_variables <- NULL
   
   # Check if additional variables are present
-  if (length(additional_vars) > 0) {
+  if (length(additional_vars_noMLTraining) > 0) {
     # Sort additional variables based on the number of unique values
-    sorted_vars <- additional_vars[order(-sapply(df_single_cell_data[additional_vars], function(x) length(unique(x))))]
+    sorted_vars <- additional_vars_noMLTraining[order(-sapply(df_single_cell_data[additional_vars_noMLTraining], function(x) length(unique(x))))]
     
     # Rename additional variables and store original names
     for (i in seq_along(sorted_vars)) {
@@ -102,6 +106,25 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
       .groups = 'drop'
     )
   
+  # add ML_Training to summary
+  if(length(additional_vars) > length(additional_vars_noMLTraining)) {
+    df_ML_Training <- df_single_cell_data %>%
+      dplyr::select(well, ML_Training, ML_Prediction) %>%
+      dplyr::group_by(well) %>%
+      dplyr::summarize(
+        ML_Training = unique(ML_Training),
+        cell_count = dplyr::n(),
+        `ML_Prediction_% +` = sum(ML_Prediction == "+")/cell_count,
+        `ML_Prediction_% -` = sum(ML_Prediction == "-")/cell_count
+      ) %>%
+      dplyr::ungroup()
+    
+    summary_df <- summary_df %>% dplyr::left_join(df_ML_Training) %>%
+      dplyr::select(well, Condition,
+                    ML_Training, `ML_Prediction_% +`, `ML_Prediction_% -`,
+                    dplyr::everything()
+                    )
+  }
   
   # Add fold change for median values ---------------------------------------
   
@@ -170,22 +193,10 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   summary_df <- dplyr::left_join(summary_df, plate_df) %>%
     dplyr::select(.data$plate, dplyr::everything()) # rearrange plate to be 1st column
   
-  # Rename additional_variables with original names -------------------------
-  
-  if (length(additional_variables) > 0) {
-    for (i in seq_along(additional_variables)) {
-      if (i == 1) {
-        names(summary_df)[grepl(pattern = "additional_variable_1", names(summary_df))] <- additional_variable_1
-      } else if (i == 2) {
-        names(summary_df)[grepl(pattern = "additional_variable_2", names(summary_df))] <- additional_variable_2
-      }
-    }
-  }
-  
   # reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
   
   # identify percentage columns
-  is_percentage_column <- grepl("percentage", names(summary_df))
+  is_percentage_column <- grepl("percentage|%", names(summary_df))
   
   # multiply proportion values by 100
   summary_df[ , is_percentage_column] <- summary_df[ , is_percentage_column] * 100
@@ -197,9 +208,24 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   summary_df[, is_double_column] <- lapply(summary_df[, is_double_column], function(x) format(x, digits = 2, nsmall = 2))
   
   # Adjust column order -----------------------------------------------------
-  rearrange_df_columns(summary_df,
+  summary_df %>%
+    dplyr::select(plate, well, Condition, additional_variables, dplyr::everything()) %>%
+    rearrange_df_columns(.,
                        cols_to_move = c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
                        col_anchor =  "SABGal_max")
+    
+  
+  # Rename additional_variables with original names -------------------------
+  
+  if (length(additional_variables) > 0) {
+    for (i in seq_along(additional_variables)) {
+      if (i == 1) {
+        names(summary_df)[grepl(pattern = "additional_variable_1", names(summary_df))] <- additional_variable_1
+      } else if (i == 2) {
+        names(summary_df)[grepl(pattern = "additional_variable_2", names(summary_df))] <- additional_variable_2
+      }
+    }
+  }
   
   # Return df ---------------------------------------------------------------
   summary_df

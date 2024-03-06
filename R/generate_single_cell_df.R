@@ -52,8 +52,8 @@ generate_single_cell_df <- function(Input_files) {
         preProc = c("center", "scale"),
         trControl = caret::trainControl(
           method = "repeatedcv",
-          number = 4,
-          repeats = 1,
+          number = 10,
+          repeats = 3,
           verboseIter = TRUE
         )
       )
@@ -64,13 +64,13 @@ generate_single_cell_df <- function(Input_files) {
       df <- df %>%
         dplyr::mutate(
           # add predictions
-          ML_prediction = dplyr::case_when(
+          ML_Prediction = dplyr::case_when(
             !stringr::str_detect(Condition, pattern = "_background") ~ stats::predict(RFmodel, newdata = df),
             TRUE ~ NA
           ) 
         ) %>%
         # rearrange cols
-        dplyr::select(1:which(names(.) == "ML_Training"), ML_prediction, dplyr::everything())
+        dplyr::select(1:which(names(.) == "ML_Training"), ML_Prediction, dplyr::everything())
     }
     
     # return df
