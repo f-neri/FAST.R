@@ -1,3 +1,5 @@
+. <- NULL # prevents R CMD note
+
 analyze_single_cell_data <- function(df_single_cell_data, background_threshold) {
   
   # Additional variables check and handler ----------------------------------
@@ -109,19 +111,19 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   # add ML_Training to summary
   if(length(additional_vars) > length(additional_vars_noMLTraining)) {
     df_ML_Training <- df_single_cell_data %>%
-      dplyr::select(well, ML_Training, ML_Prediction) %>%
-      dplyr::group_by(well) %>%
+      dplyr::select(.data$well, .data$ML_Training, .data$ML_Prediction) %>%
+      dplyr::group_by(.data$well) %>%
       dplyr::summarize(
-        ML_Training = unique(ML_Training),
-        cell_count = dplyr::n(),
-        `ML_Prediction_% +` = sum(ML_Prediction == "+")/cell_count,
-        `ML_Prediction_% -` = sum(ML_Prediction == "-")/cell_count
+        ML_Training = unique(.data$ML_Training),
+        cell_counts = dplyr::n(),
+        `ML_Prediction_% +` = sum(.data$ML_Prediction == "+")/.data$cell_counts,
+        `ML_Prediction_% -` = sum(.data$ML_Prediction == "-")/.data$cell_counts
       ) %>%
       dplyr::ungroup()
     
     summary_df <- summary_df %>% dplyr::left_join(df_ML_Training) %>%
-      dplyr::select(well, Condition,
-                    ML_Training, `ML_Prediction_% +`, `ML_Prediction_% -`,
+      dplyr::select(.data$well, .data$Condition,
+                    .data$ML_Training, .data$`ML_Prediction_% +`, .data$`ML_Prediction_% -`,
                     dplyr::everything()
                     )
   }
@@ -209,7 +211,7 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   
   # Adjust column order -----------------------------------------------------
   summary_df %>%
-    dplyr::select(plate, well, Condition, additional_variables, dplyr::everything()) %>%
+    dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
     rearrange_df_columns(.,
                        cols_to_move = c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
                        col_anchor =  "SABGal_max")

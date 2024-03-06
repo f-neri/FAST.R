@@ -1,4 +1,8 @@
-generate_single_cell_df <- function(Input_files) {
+. <- NULL # prevents R CMD note
+
+generate_single_cell_df <- function(Input_files,
+                                    training_folds = 3,
+                                    training_repeats = 1) {
   # tidy IAoutput and merge with metadata -----------------------------------
   
   Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
@@ -30,13 +34,13 @@ generate_single_cell_df <- function(Input_files) {
       df_training <- df %>%
         dplyr::filter(
           # remove background wells
-          !stringr::str_detect(Condition, pattern = "_background"),
+          !stringr::str_detect(.data$Condition, pattern = "_background"),
           # filter for wells selected as + or - sample for training
-          ML_Training %in% c("+","-")
+          .data$ML_Training %in% c("+","-")
         ) %>%
         dplyr::mutate(
           # turn ML_Training into a factor col
-          ML_Training = factor(ML_Training, levels = c("+", "-"))
+          ML_Training = factor(.data$ML_Training, levels = c("+", "-"))
         )
       
       ## train a Random Forest model w/ the
@@ -52,8 +56,8 @@ generate_single_cell_df <- function(Input_files) {
         preProc = c("center", "scale"),
         trControl = caret::trainControl(
           method = "repeatedcv",
-          number = 10,
-          repeats = 3,
+          number = training_folds,
+          repeats = training_repeats,
           verboseIter = TRUE
         )
       )
@@ -65,12 +69,12 @@ generate_single_cell_df <- function(Input_files) {
         dplyr::mutate(
           # add predictions
           ML_Prediction = dplyr::case_when(
-            !stringr::str_detect(Condition, pattern = "_background") ~ stats::predict(RFmodel, newdata = df),
+            !stringr::str_detect(.data$Condition, pattern = "_background") ~ stats::predict(RFmodel, newdata = df),
             TRUE ~ NA
           ) 
         ) %>%
         # rearrange cols
-        dplyr::select(1:which(names(.) == "ML_Training"), ML_Prediction, dplyr::everything())
+        dplyr::select(1:which(names(.) == "ML_Training"), .data$ML_Prediction, dplyr::everything())
     }
     
     # return df

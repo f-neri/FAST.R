@@ -11,14 +11,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Suggests: 
+    randomForest,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
+    caret,
     dplyr,
     DT,
     ggplot2,
     magrittr,
     plater,
+    purrr,
     RColorBrewer,
     readxl,
     scales,
