@@ -2,7 +2,7 @@
 
 # FAST.R 0.2.0
 
-* Added a new machine learning random forest classifier approach to distinguish between senescent from non-senescent cells based on the markers measured (SA-B-Gal, EdU, and Nuclear Area). This additional analysis can be easily performed by modifying the input metadata as described in the app.
+* Added a new machine learning random forest classifier approach to distinguish between senescent and non-senescent cells based on the markers measured (SA-B-Gal, EdU, and Nuclear Area). This additional analysis can be easily performed by modifying the input metadata as described in the app.
 
 * Added a new tab, 'Example Data', which allows users to download example data. Such data can be used to test the FAST.R app or can serve as a benchmark to ensure your own data is structured correctly and ready for analysis.
 
