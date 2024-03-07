@@ -1,4 +1,4 @@
-# FAST.R (development version)
+* Adjusted tuning parameters used for ML classifier training
 
 # FAST.R 0.2.0
 
