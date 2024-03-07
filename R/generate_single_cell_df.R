@@ -1,8 +1,8 @@
 . <- NULL # prevents R CMD note
 
 generate_single_cell_df <- function(Input_files,
-                                    training_folds = 3,
-                                    training_repeats = 1) {
+                                    training_folds = 10,
+                                    training_repeats = 3) {
   # tidy IAoutput and merge with metadata -----------------------------------
   
   Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
