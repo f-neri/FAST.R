@@ -16,9 +16,6 @@ data_analysisServer <- function(id) {
         stringr::str_replace_all(pattern = ".xlsx", replacement = "_metadata.csv")
     })
     
-    # download template from GitHub
-    ## template_url <- "https://raw.githubusercontent.com/f-neri/FAST.R/main/inst/extdata/plate-metadata.csv" # TO CHANGE: RELATIVE INST PATH
-    
     # copy template from package directory
     template_path <- system.file("extdata", "plate-metadata.csv", package = "FAST.R")
     
@@ -32,9 +29,6 @@ data_analysisServer <- function(id) {
       },
       
       content = function(file) if (length(input$Image_Analyst_output$name) == 1) { # single IAoutput and metadata files
-        # download template from GitHub
-        ## utils::download.file(template_url, destfile = file, method = "auto")
-        
         # copy template from package directory
         file.copy(template_path, file)
         

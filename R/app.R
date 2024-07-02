@@ -23,10 +23,10 @@ FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to b
   # check arguments
   stopifnot(is.logical(Browser))
   
-  # Set file upload size limit to 20 MB
+  # Set file upload size limit to 200 MB
   old_options <- options()
   on.exit(options(old_options)) # ensures user options are restored upon exit
-  options(shiny.maxRequestSize=20*1024^2)
+  options(shiny.maxRequestSize=200*1024^2)
   
   # UI ----------------------------------------------------------------------
   
@@ -46,7 +46,9 @@ FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to b
                                       )
                        ),
     
-    tags$head( # changes CSS style of validate() text
+    # changes CSS style
+    tags$head(
+      # validate() text style
       tags$style(HTML("
         .shiny-output-error-validation {
           color: #ff0000;
@@ -55,16 +57,21 @@ FAST.R <- function(Browser = FALSE) { # app needs to be wrapped in function to b
       "))
     ),
     
+    # Title
     titlePanel(
-      h1(strong("FAST-R"), align = "center")
+      h1(strong("FAST.R"), align = "center")
       ),
     
-    # Title + paper link
+    # Subtitle + FAST paper link
     fluidRow(
       column(12,
-             h1("FAST Data Analysis & Visualization App", align = "center"), # TO ADD a(href = "link", "FAST")
+             h2(tags$a(href = "https://doi.org/10.1007/s11357-024-01167-3", # link
+                       "FAST", 
+                       target = "_blank"), 
+                " Data Analysis & Visualization App", 
+                align = "center"),
              br()
-             )
+      )
     ),
     
     ui <- fluidPage(

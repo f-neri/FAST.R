@@ -1,7 +1,7 @@
 data_analysisUI <- function(id) {
   
   tagList(
-    # Data analysis header
+    # Data analysis tab title
     fluidRow(
       column(12,
              br(),
@@ -10,6 +10,7 @@ data_analysisUI <- function(id) {
       )
     ),
     
+    # Input and Instructions col headers
     fluidRow(
       style = "background-color: #D6EBF2;",
       fluidRow(
@@ -26,9 +27,11 @@ data_analysisUI <- function(id) {
       
       # upload IAoutput
       fluidRow(
+        # Input
         column(3, offset = 3, align = "center",
                fileInput(NS(id, "Image_Analyst_output"), label = "Image Analyst Output File", multiple = TRUE, accept = ".xlsx")
         ),
+        # Instructions
         column(5, offset = 0,
                br(),
                p("Upload the ", strong("Image Analyst Output File"), " containing your single-cell measurements.")
@@ -37,7 +40,9 @@ data_analysisUI <- function(id) {
       
       # download metadata template
       fluidRow(
+        # Input
         column(3, offset = 3, align = "center",
+               # manually added line brakes to have download button ~ in the middle of instructions block
                br(),
                br(),
                br(),
@@ -46,29 +51,35 @@ data_analysisUI <- function(id) {
                br(),
                downloadButton(NS(id, "download_metadata"), label = "Metadata Template")
         ),
+        # Instructions
         column(5, offset = 0,
                p("Download the ", strong("Metadata Template.csv file"), ", and ", strong("modify it"), " appropriately to include your metadata:"),
-               p("- In the first microplate template (\"Condition\"), ", strong("add labels")," to differentiate your experimental conditions
-           (e.g., IR & Mock IR). Then, ", strong("append the tag \"_background\"")," to denote your Background wells for each condition
-             (e.g., IR_background & Mock IR_background)."),
-               p("- ", em("Optional"), ": Labels for up to two additional variables can be added in the remaining microplate
-             templates (e.g., different culturing media or varying concentrations of a drug treatment). Replace the
-             placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g., \"Medium\" or \"DrugA (nM)\")."),
-               p("- ", em("Optional"), ": A machine learning (ML) approach to classify cells as senescent or non-senescent can be added to the analysis. To do so, modify the ", em(" ML_Training")," template to specify which wells to be used for training:"),
-               p("   \u25CF label with ",strong("\"+\""), " a few positive samples (i.e. wells where you are confident the great majority / >90% of cells are senescent);"),
-               p("   \u25CF label with ",strong("\"-\""), " a few negative samples (i.e. wells where you are confident the great majority / >90% of cells are NOT senescent);"),
-               p("The ML model will classify cells in all non-training wells as being senescent or not"),
-               p(strong("NOTE"), ": this additional ML analysis requires a ", em("significantly longer"), " time to complete (from a few seconds per plate without ML, to a few minutes per plate with ML)"),
+               tags$ul(
+                 tags$li("In the first microplate template (\"Condition\"), ", strong("add labels"), " to differentiate your experimental conditions (e.g., IR & Mock IR). Then, ", strong("append the tag \"_background\""), " to denote your Background wells for each condition (e.g., IR_background & Mock IR_background)."),
+                 tags$li(em("Optional"), ": Labels for up to two additional variables can be added in the remaining microplate templates (e.g., different culturing media or varying concentrations of a drug treatment). Replace the placeholder names (\"Variable1\" and \"Variable2\") with your actual variable names (e.g., \"Medium\" or \"DrugA (nM)\")."),
+                 tags$li(em("Optional"), ": A machine learning (ML) approach to classify cells as senescent or non-senescent can be added to the analysis. To do so, modify the ", em("ML_Training"), " template to specify which wells to be used for training:",
+                         tags$ul(
+                           tags$li("label with ", strong("\"+\""), " a few positive samples (i.e. wells where you are confident the great majority / >90% of cells are senescent);"),
+                           tags$li("label with ", strong("\"-\""), " a few negative samples (i.e. wells where you are confident the great majority / >90% of cells are NOT senescent);")
+                         ),
+                         tags$div(style = "margin-left: 40px;", 
+                                  p("The ML model will classify cells in all non-training wells as being senescent or not"),
+                                  p(strong("NOTE"), ": this additional ML analysis requires a ", em("significantly longer"), " time to complete (from a few seconds per plate without ML, to a few minutes per plate with ML).")
+                         )
+                 )
+               ),
                br()
         )
       ),
       
       # upload adjusted metadata
       fluidRow(
+        # Input
         column(3, offset = 3, align = "center",
                fileInput(NS(id, "plate_metadata"), label = "Adjusted Metadata File",
                          multiple = TRUE,  accept = ".csv"),
         ),
+        # Instructions
         column(5, offset = 0,
                br(),
                br(),
@@ -79,11 +90,13 @@ data_analysisUI <- function(id) {
       
       # adjust background_threshold percentile value
       fluidRow(
+        # Input
         column(3, offset = 3, align = "center",
                numericInput(NS(id, "background_threshold"), label = "Background Threshold",
                             value = 0.95, min = 0.9, max = 1.0, step = 0.01, width = "180px"),
                helpText("Recommended value: 0.95")
         ),
+        # Instructions
         column(5, offset = 0,
                br(),
                p(em("Optional"), ": Adjust the ", strong("Background Threshold"), ".
