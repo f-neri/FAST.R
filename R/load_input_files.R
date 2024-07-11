@@ -1,18 +1,27 @@
+################################################################################
+# 07/08 Modified load_input_files.R Script
+#
+# Load and check IA Output file and meta data - need to update UI
+################################################################################
+
 load_input_files <- function(Image_Analyst_output, plate_metadata) {
+  # 07/08 temp comment - undo later! --> undid
   check_file_numbers_match(Image_Analyst_output$name,
                            plate_metadata$name)
   
   ## create IAoutput and plate_metadata tibbles
   IAoutput_files <- tibble::tibble(
-    IAoutput_name = Image_Analyst_output$name,
-    IAoutput_datapath = Image_Analyst_output$datapath
+    Image_Analyst_output$name, # IAoutput_name = "example_Image_Analyst_Output_File"
+    IAoutput_datapath = Image_Analyst_output$datapath # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File.xlsx'
   ) %>%
+    # dplyr::arrange(IAoutput_name)
     dplyr::arrange(.data$IAoutput_name)
   
   plate_metadata_files <- tibble::tibble(
-    metadata_name = plate_metadata$name,
-    metadata_datapath = plate_metadata$datapath
+    metadata_name = plate_metadata$name, # "example_Image_Analyst_Output_File_metadata",
+    metadata_datapath = plate_metadata$datapath # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File_metadata.csv' #
   ) %>%
+    # dplyr::arrange(metadata_name)
     dplyr::arrange(.data$metadata_name)
   
   ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
@@ -31,7 +40,7 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
   for (i in seq_len(nrow(Input_files))) {
     
     # read metadata
-    Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i],
+    Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i], # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File_metadata.csv'
                                                        well_ids_column = "well",    # name to give column of well IDs
                                                        sep = ",") %>%               # separator used in the csv file
       dplyr::select(dplyr::where(~ !all(is.na(.x)))) # remove columns whose values are all NA
@@ -92,9 +101,9 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     validate(
       paste0(
         "ERROR: Plate metadata files should all have the same variables
-          
+
           Ensure that all metadata files contain the same plate template names/variables.
-          
+
           Variables in first metadata file (", Input_files$metadata_name[1], "): ", paste(c(sort(names(Input_files$metadata_df[[1]]))), collapse=", "), "
           Mismatched metadata files: ", paste(c(Input_files$metadata_name[mismatched_indices]), collapse=", ")
       )
@@ -108,9 +117,11 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     
     # read IAoutput
     Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
+    # Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File.xlsx', skip = 1, na = "NA")
     
     # check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
     n_channels <- Input_files$IAoutput_df[[i]]$Channel %>% unique() %>% length()
+    
     number_wells_IAoutput <- nrow( Input_files$IAoutput_df[[i]] ) / n_channels
     
     number_wells_metadata <- Input_files$metadata_df[[i]]$well %>% length()

@@ -64,8 +64,8 @@ data_analysisServer <- function(id) {
     
     # Load files --------------------------------------------------------------
     Input_files <- reactive({
-      
-      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold)
+      # 07/11 Change
+      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold, input$morphological_feature, input$morphological_feature, input$input_feature)
       
       # Update UI ---------------------------------------------------------------
       
@@ -85,7 +85,9 @@ data_analysisServer <- function(id) {
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$morphological_feature, # 07/11 Change
+                input$feature_list) %>% # 07/11 Change
       bindEvent(input$button_analysis)
     
     # Generate single_cell_data table -----------------------------------------------------------
@@ -98,7 +100,7 @@ data_analysisServer <- function(id) {
       
       Input_files <- Input_files()
       
-      single_cell_df <- generate_single_cell_df(Input_files)
+      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$feature_list)
       
       # return single cell df
       single_cell_df
@@ -106,7 +108,9 @@ data_analysisServer <- function(id) {
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$morphological_feature, # 07/11 Change
+                input$feature_list) %>% # 07/11 Change
       bindEvent(input$button_analysis)
     
     # Generate analysis_report table ------------------------------------------
@@ -119,14 +123,21 @@ data_analysisServer <- function(id) {
       on.exit({ enable_button_analysis() })
       
       # generate analysis report
-      analysis_report <- analyze_single_cell_data(single_cell_data(), input$background_threshold)
+      analysis_report <- analyze_single_cell_data(
+        single_cell_data(),
+        input$background_threshold,
+        input$morphological_feature, # 07/11 Change
+        input$feature_list # 07/11 Change
+      )
       
       # return analysis report df
       analysis_report
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$morphological_feature, # 07/11 Change
+                input$feature_list) %>% # 07/11 Change
       bindEvent(input$button_analysis)
     
     # OUTPUT ------------------------------------------------------------------
@@ -207,10 +218,18 @@ data_analysisServer <- function(id) {
       additional_variables <- additional_variables[-c(pos_cell_counts:length(additional_variables))] # remove all vars after cell_counts, leaving only possible additional vars
       
       # create vector with cols to visualize
+      # 07/11 Change
+      all_feature_list <- c(input$morphological_feature, input$feature_list)
+      median_cols <- paste0(all_feature_list, "_median")
+      percentage_pos_cols <- paste0("percentage_", all_feature_list, "_positive")
       cols_to_vis <- c("plate", "well", "Condition", additional_variables,
-                       "cell_counts", "Nuclear_Area_median", "EdU_median", "SABGal_median",
-                       "percentage_EdU_positive", "percentage_SABGal_positive"
-                       )
+                       "cell_counts", median_cols,
+                       percentage_pos_cols
+      )
+      # cols_to_vis <- c("plate", "well", "Condition", additional_variables,
+      #                  "cell_counts", "Nuclear_Area_median", "EdU_median", "SABGal_median",
+      #                  "percentage_EdU_positive", "percentage_SABGal_positive"
+      #                  )
       
       # get indices of cols to NOT visualize
       indices <- which(!(names(analysis_report()) %in% cols_to_vis)) %>% -1 # indices in columnDefs calls start from 0, not 1

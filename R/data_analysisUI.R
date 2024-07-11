@@ -106,6 +106,55 @@ data_analysisUI <- function(id) {
         )
       ),
       
+      # 07/11 Change
+      # add morphological feature
+      # new morphological_feature input
+      fluidRow(
+        # Input
+        column(3, offset = 3, align = "center",
+               textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
+                         value = "Nuclear_Area", width = "180px")
+        ),
+        # Instructions
+        column(5, offset = 0,
+               br(),
+               p("Enter the ", strong("Morphological Feature"), " for analysis."),
+               br()
+        )
+      ),
+      
+      # new features input
+      fluidRow(
+        # Input
+        column(3, offset = 3, align = "center",
+               textInput(NS(id, "input_feature"), label = "Stain Features",
+                         value = "SABGal", width = "180px")
+        ),
+        # Instructions
+        column(5, offset = 0,
+               br(),
+               p("Enter the ", strong("Stain Features"), " for analysis."),
+               br()
+        )
+      ),
+      
+      # fluidRow(
+      #   # Input
+      #   column(3, offset = 3, align = "center",
+      #          textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
+      #                       value = "Nuclear_Area", width = "180px"),
+      #          helpText("A morphological feature must be input")
+      #   ),
+      #   # Instructions
+      #   column(5, offset = 0,
+      #          br(),
+      #          p(em("Optional"), ": Choose a ", strong("Morphological Feature"), ".
+      #      This is based on the morphological feature selected in ImageAnalyst.
+      #        Currently, ", strong(FAST.R), " only supports one morphological feature."),
+      #          br()
+      #   )
+      # ),
+      
       # run analysis button
       fluidRow(
         column(12, align = "center",
@@ -113,6 +162,15 @@ data_analysisUI <- function(id) {
                actionButton(NS(id, "button_analysis"), label = "Run Analysis", icon = icon("rocket")),
                br(), br()
         )
+      )
+    ),
+    
+    # run analysis button
+    fluidRow(
+      column(12, align = "center",
+             br(), br(),
+             actionButton(NS(id, "button_analysis"), label = "Run Analysis", icon = icon("rocket")),
+             br(), br()
       )
     ),
     
