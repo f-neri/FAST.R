@@ -65,7 +65,7 @@ data_analysisServer <- function(id) {
     # Load files --------------------------------------------------------------
     Input_files <- reactive({
       # 07/11 Change
-      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold, input$morphological_feature, input$morphological_feature, input$input_feature)
+      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold, input$morphological_feature, input$input_feature)
       
       # Update UI ---------------------------------------------------------------
       
@@ -100,7 +100,9 @@ data_analysisServer <- function(id) {
       
       Input_files <- Input_files()
       
-      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$feature_list)
+      # 07/11 temp change, before I update feature_list inputs
+      # feature_list <- unlist(strsplit(input$feature_list, ';'))
+      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, unlist(strsplit(input$input_feature, ';')))
       
       # return single cell df
       single_cell_df
@@ -122,12 +124,15 @@ data_analysisServer <- function(id) {
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
       
+      # # 07/11 temp change, before I update feature_list inputs
+      # feature_list <- unlist(strsplit(input$feature_list, ';'))
+      
       # generate analysis report
       analysis_report <- analyze_single_cell_data(
         single_cell_data(),
         input$background_threshold,
         input$morphological_feature, # 07/11 Change
-        input$feature_list # 07/11 Change
+        unlist(strsplit(input$input_feature, ';')) # 07/11 Change
       )
       
       # return analysis report df
@@ -219,7 +224,7 @@ data_analysisServer <- function(id) {
       
       # create vector with cols to visualize
       # 07/11 Change
-      all_feature_list <- c(input$morphological_feature, input$feature_list)
+      all_feature_list <- c(input$morphological_feature, input$input_feature)
       median_cols <- paste0(all_feature_list, "_median")
       percentage_pos_cols <- paste0("percentage_", all_feature_list, "_positive")
       cols_to_vis <- c("plate", "well", "Condition", additional_variables,

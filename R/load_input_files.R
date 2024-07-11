@@ -11,7 +11,7 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
   
   ## create IAoutput and plate_metadata tibbles
   IAoutput_files <- tibble::tibble(
-    Image_Analyst_output$name, # IAoutput_name = "example_Image_Analyst_Output_File"
+    IAoutput_name = Image_Analyst_output$name, # IAoutput_name = "example_Image_Analyst_Output_File"
     IAoutput_datapath = Image_Analyst_output$datapath # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File.xlsx'
   ) %>%
     # dplyr::arrange(IAoutput_name)

@@ -68,7 +68,7 @@ generate_single_cell_df <- function(Input_files,
 
       RFmodel <-  caret::train(
         x = df_training %>%
-          dplyr::select(feature_list),
+          dplyr::select(all_of(feature_list)),
           #dplyr::select("Nuclear_Area", "EdU", "SABGal"),
         y = df_training$ML_Training,
         method = "rf",

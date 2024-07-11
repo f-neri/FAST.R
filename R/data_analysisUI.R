@@ -128,7 +128,7 @@ data_analysisUI <- function(id) {
         # Input
         column(3, offset = 3, align = "center",
                textInput(NS(id, "input_feature"), label = "Stain Features",
-                         value = "SABGal", width = "180px")
+                         value = "SABGal;DAPI;EdU", width = "180px")
         ),
         # Instructions
         column(5, offset = 0,
@@ -165,14 +165,14 @@ data_analysisUI <- function(id) {
       )
     ),
     
-    # run analysis button
-    fluidRow(
-      column(12, align = "center",
-             br(), br(),
-             actionButton(NS(id, "button_analysis"), label = "Run Analysis", icon = icon("rocket")),
-             br(), br()
-      )
-    ),
+    # # run analysis button
+    # fluidRow(
+    #   column(12, align = "center",
+    #          br(), br(),
+    #          actionButton(NS(id, "button_analysis"), label = "Run Analysis", icon = icon("rocket")),
+    #          br(), br()
+    #   )
+    # ),
     
     # show upload/data analysis error messages
     fluidRow(
