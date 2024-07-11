@@ -1,9 +1,11 @@
 rearrange_df_columns <- function(df, cols_to_move, col_anchor) {
-  
+
   col_anchor_n <- which(names(df) == col_anchor)
-  
+
   df <- df %>%
-    dplyr::select( tidyr::all_of(names(df)[1:col_anchor_n]), tidyr::all_of(cols_to_move), dplyr::everything() )
-  
+    dplyr::select( dplyr::all_of(names(df)[1:col_anchor_n]), dplyr::all_of(cols_to_move), dplyr::everything() )
+    # dplyr::select( tidyselect::all_of(names(df)[1:col_anchor_n]), tidyselect::all_of(cols_to_move), dplyr::everything() )
+    # dplyr::select( tidyr::all_of(names(df)[1:col_anchor_n]), tidyr::all_of(cols_to_move), dplyr::everything() )
+
   df
 }
