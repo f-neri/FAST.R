@@ -31,7 +31,7 @@ counts_percentages <- function(data, pos_neg_pairs) {
   summarise_expr <- rlang::exprs(!!!expr_list)
   
   result_df <- data %>%
-    summarise(!!!summarise_expr)
+    dplyr::summarise(!!!summarise_expr)
   
   return(result_df)
 }
