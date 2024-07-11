@@ -231,12 +231,16 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
 
   # 07/11 change (changes in col order are now saved, check with Francesco)
   anchor_point <- paste0(feature_list[length(feature_list)], "_max")
+  # summary_df <- summary_df %>%
+  #   dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
+  #   rearrange_df_columns(.,
+  #                      cols_to_move = all_of(c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change")), #median_fold_change_cols), #c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
+  #                      col_anchor =  anchor_point)
   summary_df <- summary_df %>%
     dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
     rearrange_df_columns(.,
-                       cols_to_move = all_of(median_fold_change_cols), #c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
-                       col_anchor =  anchor_point)
-
+                         cols_to_move = median_fold_change_cols,
+                         col_anchor =  anchor_point)
 
   # Rename additional_variables with original names -------------------------
 
