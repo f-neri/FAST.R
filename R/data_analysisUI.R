@@ -124,36 +124,37 @@ data_analysisUI <- function(id) {
       ),
       
       # new features input
+      # fluidRow(
+      #   # Input
+      #   column(3, offset = 3, align = "center",
+      #          textInput(NS(id, "input_feature"), label = "Stain Features",
+      #                    value = "SABGal;DAPI;EdU", width = "180px")
+      #   ),
+      #   # Instructions
+      #   column(5, offset = 0,
+      #          br(),
+      #          p("Enter the ", strong("Stain Features"), " for analysis."),
+      #          br()
+      #   )
+      # ),
       fluidRow(
-        # Input
         column(3, offset = 3, align = "center",
-               textInput(NS(id, "input_feature"), label = "Stain Features",
-                         value = "SABGal;DAPI;EdU", width = "180px")
+               selectizeInput(
+                 inputId = NS(id, "input_feature"),
+                 label = "Stain Features",
+                 choices = c("DAPI", "EdU", "SABGal"),  # Add all possible stain features here
+                 selected = c("DAPI", "EdU", "SABGal"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select stain features',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
         ),
-        # Instructions
         column(5, offset = 0,
                br(),
                p("Enter the ", strong("Stain Features"), " for analysis."),
                br()
         )
       ),
-      
-      # fluidRow(
-      #   # Input
-      #   column(3, offset = 3, align = "center",
-      #          textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
-      #                       value = "Nuclear_Area", width = "180px"),
-      #          helpText("A morphological feature must be input")
-      #   ),
-      #   # Instructions
-      #   column(5, offset = 0,
-      #          br(),
-      #          p(em("Optional"), ": Choose a ", strong("Morphological Feature"), ".
-      #      This is based on the morphological feature selected in ImageAnalyst.
-      #        Currently, ", strong(FAST.R), " only supports one morphological feature."),
-      #          br()
-      #   )
-      # ),
       
       # run analysis button
       fluidRow(

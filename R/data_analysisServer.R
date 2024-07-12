@@ -102,7 +102,7 @@ data_analysisServer <- function(id) {
       
       # 07/11 temp change, before I update feature_list inputs
       # feature_list <- unlist(strsplit(input$feature_list, ';'))
-      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, unlist(strsplit(input$input_feature, ';')))
+      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$input_feature) #unlist(strsplit(input$input_feature, ';')))
       
       # return single cell df
       single_cell_df
@@ -132,7 +132,8 @@ data_analysisServer <- function(id) {
         single_cell_data(),
         input$background_threshold,
         input$morphological_feature, # 07/11 Change
-        unlist(strsplit(input$input_feature, ';')) # 07/11 Change
+        input$input_feature
+        #unlist(strsplit(input$input_feature, ';')) # 07/11 Change
       )
       
       # return analysis report df
