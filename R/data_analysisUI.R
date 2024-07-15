@@ -159,7 +159,7 @@ data_analysisUI <- function(id) {
       # Create button
       fluidRow(
         column(3, offset = 3, align = "center",
-               actionButton(NS(id, "generate_dropdown"), "Generate ML Feature Selection Dropdown")
+               actionButton(NS(id, "generate_dropdown"), "Show ML Feature Selection Dropdown")
         ),
         column(5, offset = 0,
                br(),
