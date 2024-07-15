@@ -60,11 +60,29 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
+    # ML Features -----------------------------------------------------------
+    observeEvent(input$generate_dropdown, {
+      selected_features <- c(input$morphological_feature, input$input_feature)
+      
+      output$dynamic_dropdown_ui <- renderUI({
+        selectizeInput(
+          inputId = NS(id, "input_ML_features"),
+          label = "ML Features",
+          choices = selected_features,
+          multiple = TRUE,
+          options = list(placeholder = 'Select ML features',
+                         plugins = list('remove_button', 'drag_drop'))
+        )
+      })
+    })
+      
     # DATA ANALYSIS -----------------------------------------------------------
     
     # Load files --------------------------------------------------------------
     Input_files <- reactive({
-      # 07/11 Change
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
+      
       req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold, input$morphological_feature, input$input_feature)
       
       # Update UI ---------------------------------------------------------------
@@ -86,6 +104,7 @@ data_analysisServer <- function(id) {
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
                 input$background_threshold,
+                input$input_ML_features, # 07/15 Change
                 input$morphological_feature, # 07/11 Change
                 input$feature_list) %>% # 07/11 Change
       bindEvent(input$button_analysis)
@@ -101,8 +120,10 @@ data_analysisServer <- function(id) {
       Input_files <- Input_files()
       
       # 07/11 temp change, before I update feature_list inputs
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
       # feature_list <- unlist(strsplit(input$feature_list, ';'))
-      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$input_feature) #unlist(strsplit(input$input_feature, ';')))
+      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$input_feature, input$input_ML_features)
       
       # return single cell df
       single_cell_df
@@ -111,21 +132,22 @@ data_analysisServer <- function(id) {
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
                 input$background_threshold,
+                input$input_ML_features, # 07/15 Change
                 input$morphological_feature, # 07/11 Change
-                input$feature_list) %>% # 07/11 Change
+                input$feature_list) %>%  #, # 07/11 Change
       bindEvent(input$button_analysis)
     
     # Generate analysis_report table ------------------------------------------
     analysis_report <- reactive({
+      
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
       
       # disable button_analysis while computing
       shinyjs::disable("button_analysis")
       
       # enable button_analysis on exit
       on.exit({ enable_button_analysis() })
-      
-      # # 07/11 temp change, before I update feature_list inputs
-      # feature_list <- unlist(strsplit(input$feature_list, ';'))
       
       # generate analysis report
       analysis_report <- analyze_single_cell_data(
@@ -143,7 +165,8 @@ data_analysisServer <- function(id) {
                 input$plate_metadata$datapath,
                 input$background_threshold,
                 input$morphological_feature, # 07/11 Change
-                input$feature_list) %>% # 07/11 Change
+                input$feature_list) %>% #, # 07/11 Change
+                #input$ML_features) %>% # 07/12 Change
       bindEvent(input$button_analysis)
     
     # OUTPUT ------------------------------------------------------------------
