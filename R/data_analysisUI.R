@@ -112,8 +112,17 @@ data_analysisUI <- function(id) {
       fluidRow(
         # Input
         column(3, offset = 3, align = "center",
-               textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
-                         value = "Nuclear_Area", width = "180px")
+               selectizeInput(
+                 inputId = NS(id, "morphological_feature"),
+                 label = "Morphological Feature",
+                 choices = c("Nuclear_Area"),
+                 selected = c("Nuclear_Area"),
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select morphological feature',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
+               # textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
+               #           value = "Nuclear_Area", width = "180px")
         ),
         # Instructions
         column(5, offset = 0,
@@ -123,20 +132,6 @@ data_analysisUI <- function(id) {
         )
       ),
       
-      # new features input
-      # fluidRow(
-      #   # Input
-      #   column(3, offset = 3, align = "center",
-      #          textInput(NS(id, "input_feature"), label = "Stain Features",
-      #                    value = "SABGal;DAPI;EdU", width = "180px")
-      #   ),
-      #   # Instructions
-      #   column(5, offset = 0,
-      #          br(),
-      #          p("Enter the ", strong("Stain Features"), " for analysis."),
-      #          br()
-      #   )
-      # ),
       fluidRow(
         column(3, offset = 3, align = "center",
                selectizeInput(
@@ -151,9 +146,37 @@ data_analysisUI <- function(id) {
         ),
         column(5, offset = 0,
                br(),
-               p("Enter the ", strong("Stain Features"), " for analysis."),
+               p("Enter the ", strong("Stain Features"), " in the order from ImageAnalyst for analysis."),
+               br(),
+               # manually added line brakes
+               br(),
+               br(),
                br()
         )
+      ),
+      
+      ## BASED ON INPUT FEATURES IN STAIN AND MORPHOLOGICAL, DROP DOWN MENU TO CHOOSE WHICH ML FEATURES TO PICK FROM 
+      # Create button
+      fluidRow(
+        column(3, offset = 3, align = "center",
+               actionButton(NS(id, "generate_dropdown"), "Generate ML Feature Selection Dropdown")
+        ),
+        column(5, offset = 0,
+               br(),
+               p("Click the button to pick the features for ML training."),
+               br()
+        )
+      ),
+      
+      fluidRow(
+        # Placeholder for the dynamic dropdown
+        column(3, offset = 3, align = "center",
+               uiOutput(NS(id, "dynamic_dropdown_ui"))
+        ),
+        # manually added line brakes
+        br(),
+        br(),
+        br()
       ),
       
       # run analysis button
@@ -165,15 +188,6 @@ data_analysisUI <- function(id) {
         )
       )
     ),
-    
-    # # run analysis button
-    # fluidRow(
-    #   column(12, align = "center",
-    #          br(), br(),
-    #          actionButton(NS(id, "button_analysis"), label = "Run Analysis", icon = icon("rocket")),
-    #          br(), br()
-    #   )
-    # ),
     
     # show upload/data analysis error messages
     fluidRow(
