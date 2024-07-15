@@ -11,6 +11,7 @@
 generate_single_cell_df <- function(Input_files,
                                     input_morphological_feature_list,
                                     input_feature_list,
+                                    input_ML_features,
                                     training_folds = 10,
                                     training_repeats = 3) {
   
@@ -43,7 +44,7 @@ generate_single_cell_df <- function(Input_files,
       dplyr::select(.data$plate, .data$well, .data$cell_ID, dplyr::all_of(variable_names), dplyr::everything())
 
     # Machine learning --------------------------------------------------------
-
+    
     # check if Training metadata was provided
     if (any(names(df) %in% "ML_Training")) {
 
@@ -65,10 +66,13 @@ generate_single_cell_df <- function(Input_files,
       ## carete package https://cran.r-project.org/web/packages/caret/vignettes/caret.html
 
       set.seed(123) # set seed to ensure reproducibility for model training and prediction
-
+      # if(!length(input_ML_features) == 0) {
+      #   
+      # }
       RFmodel <-  caret::train(
         x = df_training %>%
-          dplyr::select(all_of(feature_list)),
+          dplyr::select(all_of(input_ML_features)),
+          # dplyr::select(all_of(feature_list)),#input_ML_features)), # change to select for the features
           #dplyr::select("Nuclear_Area", "EdU", "SABGal"),
         y = df_training$ML_Training,
         method = "rf",
