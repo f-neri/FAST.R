@@ -213,6 +213,21 @@ data_visualizationServer <- function(id) {
     # calculate widths and heigths
     dims_plot <- reactive({
       
+      # 07/21 - get variables
+      df_data <- df()
+      add_vars <- additional_variables()
+      other_var <- other_add_var()
+      
+      print("Debugging df_data:")
+      print(names(df_data))  # Print column names of df_data
+      print(paste("Debugging other_var:", other_var))  # Print the value of other_var
+      
+      # if (other_var %in% names(df_data)) {
+      #   value <- 100 + 250 * length(unique(df_data[[other_var]]))
+      # } else {
+      #   value <- 350
+      # }
+      
       # create df with all widths and heights and calculate respective values
       df <- tibble::tibble(
         dim = c("width", "height",

@@ -33,6 +33,16 @@ data_visualizationUI <- function(id) {
                br(),
                fileInput(NS(id, "single_cell_data_df"), label = "Single Cell Data", multiple = FALSE, accept = ".csv"),
                fileInput(NS(id, "analysis_report_df"), label = "Analysis Report", multiple = FALSE, accept = ".csv"),
+               # 07/21
+               selectizeInput(
+                 inputId = NS(id, "data_input_feature"),
+                 label = "Data Features",
+                 choices = c("Nuclear_Area", "DAPI", "EdU", "SABGal"),  # Add all possible stain features here
+                 selected = c("Nuclear_Area", "DAPI", "EdU", "SABGal"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select features in the dataset',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
         ),
         column(5, offset = 0,
                br(), br(), br(), br(), br(),
@@ -42,7 +52,8 @@ data_visualizationUI <- function(id) {
         column(12, offset = 0, align = "center",
                actionButton(NS(id, "next_button"), label = "Next"),
                br(), br())
-      )
+      ),
+      
     ),
     
     # Upload error messages ---------------------------------------------------
