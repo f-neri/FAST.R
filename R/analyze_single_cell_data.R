@@ -130,14 +130,17 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
       dplyr::summarize(
         ML_Training = unique(.data$ML_Training),
         cell_counts = dplyr::n(),
-        `ML_Prediction_% +` = sum(.data$ML_Prediction == "+")/.data$cell_counts,
-        `ML_Prediction_% -` = sum(.data$ML_Prediction == "-")/.data$cell_counts
+        ML_Prediction_percentage_positive = sum(.data$ML_Prediction == "+")/.data$cell_counts,
+        ML_Prediction_percentage_negative = sum(.data$ML_Prediction == "-")/.data$cell_counts
+        # `ML_Prediction_% +` = sum(.data$ML_Prediction == "+")/.data$cell_counts,
+        # `ML_Prediction_% -` = sum(.data$ML_Prediction == "-")/.data$cell_counts
       ) %>%
       dplyr::ungroup()
     
     summary_df <- summary_df %>% dplyr::left_join(df_ML_Training) %>%
       dplyr::select(.data$well, .data$Condition,
-                    .data$ML_Training, .data$`ML_Prediction_% +`, .data$`ML_Prediction_% -`,
+                    .data$ML_Training, .data$ML_Prediction_percentage_positive, .data$ML_Prediction_percentage_negative,
+                    # .data$ML_Training, .data$`ML_Prediction_% +`, .data$`ML_Prediction_% -`,
                     dplyr::everything()
       )
   }
