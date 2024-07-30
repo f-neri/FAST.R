@@ -81,10 +81,12 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   # 07/09 working on
   single_cell_grouping <- c("well", "Condition", additional_variables)
   
-  # 07/25 
-  tester <- df_single_cell_data %>%
+  # 07/25 - get cell_counts
+  cell_counts_df <- df_single_cell_data %>%
     dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
     dplyr::summarise(cell_counts = dplyr::n(), .groups = 'drop')
+  
+  print("start summary list")
   
   # Fill summary data frame
   index <- 1
@@ -101,9 +103,12 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   # Summary Data Frame
   summary_df_list <- as.data.frame(summary_list)
   
+  # Take off any cols with colname with cell_counts
+  summary_df_list <- summary_df_list %>% 
+    dplyr::select(-contains("cell_counts"))
+  
   summary_df_list <- summary_df_list %>%
-    dplyr::left_join(tester, by = single_cell_grouping) %>% 
-    dplyr::rename(cell_counts = cell_counts.y)
+    dplyr::left_join(cell_counts_df, by = single_cell_grouping)
   
   ### Add Counts and percentages columns for pairwise features
   # Get feature pairs

@@ -43,5 +43,15 @@ calculate_summary_stats <- function(data, single_cell_grouping, feature_name, ke
       dplyr::select(all_of(summary_stat_colnames))
   }
   
+  # print("summary stats")
+  # print(names(summary_stats))
+  # 
+  # # Take off cell_counts vol
+  # summary_stats <- summary_stats %>%
+  #   dplyr::select(-cell_counts)
+  
+  # print("summary stats")
+  # print(names(summary_stats))
+  
   return(summary_stats)
 }

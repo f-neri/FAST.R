@@ -13,7 +13,7 @@ data_visualizationServer <- function(id) {
       bindCache(input$single_cell_data_df$datapath) %>%
       bindEvent(input$single_cell_data_df)
     
-    # check sinlge-cell data format
+    # check single-cell data format
     ## TO ADD
     
     # read analysis report data
@@ -67,6 +67,10 @@ data_visualizationServer <- function(id) {
       
       add_vars <- names(analysis_report_df())[-c(cell_counts_column:length(names(analysis_report_df())))] # remove all columns from cell_counts on
       
+      # 07/26
+      # print("ADD VARS")
+      # print(add_vars)
+      # 
       add_vars <- add_vars[-c(1:3)] # remove first 3 columns (plate, well, Condition)
       
       add_vars
@@ -218,26 +222,28 @@ data_visualizationServer <- function(id) {
         dim = c("width", "height",
                 "width_comparison", "height_comparison",
                 "width_percentages", "height_percentages"),
-        version = c("72")) %>%
-        dplyr::mutate(value = dplyr::case_when(
-          dim == "width" ~ ifelse(length(additional_variables()) > 0,
-                                  300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-                                  600),
-          dim == "height" ~ ifelse(length(additional_variables()) > 1,
-                                   100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
-                                   350),
-          dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
-          dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
-                                              100 + 250 * length(unique(df()[[other_add_var()]])),
-                                              350),
-          dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
-                                              300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-                                              600),
-          dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
-                                               60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
-                                               60 * length(unique(df()$Condition)))
-        ))
-      
+        version = c("72")) 
+      print("here?")
+      # %>%
+      #   dplyr::mutate(value = dplyr::case_when(
+      #     dim == "width" ~ ifelse(length(additional_variables()) > 0,
+      #                             300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+      #                             600),
+      #     dim == "height" ~ ifelse(length(additional_variables()) > 1,
+      #                              100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
+      #                              350),
+      #     dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
+      #     dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
+      #                                         100 + 250 * length(unique(df()[[other_add_var()]])),
+      #                                         350),
+      #     dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
+      #                                         300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+      #                                         600),
+      #     dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
+      #                                          60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
+      #                                          60 * length(unique(df()$Condition)))
+      #   ))
+      print("dupes")
       # create duplicate df with values adjusted based on dpi
       df_duplicate <- df %>%
         dplyr::mutate(version = "dpi_adj",
