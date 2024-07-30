@@ -80,6 +80,8 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   # grouping arguments for summarise()
   # 07/09 working on
   single_cell_grouping <- c("well", "Condition", additional_variables)
+  # print("single_cell_grouping")
+  # print(single_cell_grouping)
   
   # 07/25 - get cell_counts
   cell_counts_df <- df_single_cell_data %>%
@@ -264,7 +266,10 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
     rearrange_df_columns(.,
                          cols_to_move = median_fold_change_cols,
                          col_anchor =  anchor_point)
-  
+  summary_df <- summary_df %>% 
+    dplyr::select("plate", single_cell_grouping, "cell_counts", everything())
+  print("final df")
+  print(names(summary_df))
   # Rename additional_variables with original names -------------------------
   
   if (length(additional_variables) > 0) {
