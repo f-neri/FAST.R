@@ -60,17 +60,20 @@ data_visualizationServer <- function(id) {
       bindEvent(input$analysis_report_df$datapath,
                 input$single_cell_data_df$datapath)
     
+    # Get the input features --------------------------------------------------
+    
+    input_features <- reactive({
+      input_features <- c(input$morph_data_input_feature, input$data_input_feature)
+      input_features
+    })
+    
     # Identify additional variables -------------------------------------------
     
     additional_variables <- reactive({
       cell_counts_column <- grep("cell_counts", names(analysis_report_df())) # get column position of cell_counts
-      
+            
       add_vars <- names(analysis_report_df())[-c(cell_counts_column:length(names(analysis_report_df())))] # remove all columns from cell_counts on
       
-      # 07/26
-      # print("ADD VARS")
-      # print(add_vars)
-      # 
       add_vars <- add_vars[-c(1:3)] # remove first 3 columns (plate, well, Condition)
       
       add_vars
@@ -155,6 +158,11 @@ data_visualizationServer <- function(id) {
     # single cell data df
     df_single_cell <- reactive({
       
+      # Inputs from App
+      # input_features <- input$data_input_feature
+      # print("input features")
+      # print(input_features)
+      
       df_single_cell <- if (input$remove_background == TRUE) { # remove background cells/wells
         dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
       } else {
@@ -163,11 +171,19 @@ data_visualizationServer <- function(id) {
       
       df_single_cell <- df_single_cell %>%
         dplyr::mutate(dplyr::across(dplyr::all_of(additional_variables()), factor)) %>% # change add_vars into factors
+        # dplyr::filter(dplyr::all_of(input_features) > 0)
         dplyr::filter(.data$SABGal > 0, .data$EdU > 0) %>% # remove negative values
         dplyr::mutate( # calculate log10 values
+        #   across(
+        #     .cols = all_of(input_features),
+        #     .fns = list(log10 = ~log10(.x)),
+        #     .name = "{.col_log10}"
+        #   )
           SABGal_log10 = log10(.data$SABGal),
           EdU_log10 = log10(.data$EdU)
         )
+      # print("names of sf_single_cell")
+      # print(names(df_single_cell))
       
       # return single cell df
       df_single_cell
@@ -222,27 +238,25 @@ data_visualizationServer <- function(id) {
         dim = c("width", "height",
                 "width_comparison", "height_comparison",
                 "width_percentages", "height_percentages"),
-        version = c("72")) 
-      print("here?")
-      # %>%
-      #   dplyr::mutate(value = dplyr::case_when(
-      #     dim == "width" ~ ifelse(length(additional_variables()) > 0,
-      #                             300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-      #                             600),
-      #     dim == "height" ~ ifelse(length(additional_variables()) > 1,
-      #                              100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
-      #                              350),
-      #     dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
-      #     dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
-      #                                         100 + 250 * length(unique(df()[[other_add_var()]])),
-      #                                         350),
-      #     dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
-      #                                         300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-      #                                         600),
-      #     dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
-      #                                          60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
-      #                                          60 * length(unique(df()$Condition)))
-      #   ))
+        version = c("72"))  %>% # DEBUGGING
+        dplyr::mutate(value = dplyr::case_when(
+          dim == "width" ~ ifelse(length(additional_variables()) > 0,
+                                  300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+                                  600),
+          dim == "height" ~ ifelse(length(additional_variables()) > 1,
+                                   100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
+                                   350),
+          dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
+          dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
+                                              100 + 250 * length(unique(df()[[other_add_var()]])),
+                                              350),
+          dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
+                                              300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+                                              600),
+          dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
+                                               60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
+                                               60 * length(unique(df()$Condition)))
+        ))
       print("dupes")
       # create duplicate df with values adjusted based on dpi
       df_duplicate <- df %>%
@@ -262,6 +276,7 @@ data_visualizationServer <- function(id) {
     # well percentages
     well_percentages <- reactive({
       plot <- plot_well_percentages(data = df(),
+                                    input_features = input_features(),
                                     add_vars = additional_variables(),
                                     scale_fill_brewer = scale_fill_brewer_conditions())
       plot +

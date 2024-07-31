@@ -35,10 +35,19 @@ data_visualizationUI <- function(id) {
                fileInput(NS(id, "analysis_report_df"), label = "Analysis Report", multiple = FALSE, accept = ".csv"),
                # 07/21
                selectizeInput(
+                 inputId = NS(id, "morph_data_input_feature"),
+                 label = "Morphological Data Features",
+                 choices = c("Nuclear_Area"),  # Add all possible stain features here
+                 selected = c("Nuclear_Area"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select morphological features in the dataset',
+                                plugins = list('remove_button', 'drag_drop'))
+               ),
+               selectizeInput(
                  inputId = NS(id, "data_input_feature"),
-                 label = "Data Features",
-                 choices = c("Nuclear_Area", "DAPI", "EdU", "SABGal"),  # Add all possible stain features here
-                 selected = c("Nuclear_Area", "DAPI", "EdU", "SABGal"),  # Initial selected options
+                 label = "Stains",
+                 choices = c("DAPI", "EdU", "SABGal"),  # Add all possible stain features here
+                 selected = c("DAPI", "EdU", "SABGal"),  # Initial selected options
                  multiple = TRUE,
                  options = list(placeholder = 'Select features in the dataset',
                                 plugins = list('remove_button', 'drag_drop'))

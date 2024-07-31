@@ -1,6 +1,13 @@
 plot_well_percentages <- function(data,
+                                  input_features,
                                   add_vars,
                                   scale_fill_brewer) {
+  if(length(input_features[-1]) == 1) {
+    # plot will only have one feature/stain
+  }
+  
+  
+  feat_combns <- get_combos(input_features, special = NULL, permute_combn = "combn")
   
   ggplot2::ggplot(data,
                   ggplot2::aes(.data$percentage_SABGal_positive, .data$percentage_EdU_positive)
