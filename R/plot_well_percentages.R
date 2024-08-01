@@ -9,7 +9,7 @@ plot_well_percentages <- function(data,
     x_feature = input_features[-1]
     x_feature_plot = paste0("percentage_", x_feature, "_positive")
     
-    plots <- ggplot2::ggplot(data, ggplot2::aes(x = .data[[x_feature_plot]])) +
+    plot_well_percentages_plots <- ggplot2::ggplot(data, ggplot2::aes(x = .data[[x_feature_plot]])) +
       ggplot2::geom_histogram(
         ggplot2::aes(fill = .data$Condition),
         bins = 30, color = "black", alpha = 0.7) +
@@ -33,7 +33,7 @@ plot_well_percentages <- function(data,
     y_feature = input_features[-1][2]
     y_feature_plot = paste0("percentage_", y_feature, "_positive")
     
-    plots <- ggplot2::ggplot(data,
+    plot_well_percentages_plots <- ggplot2::ggplot(data,
                     ggplot2::aes(.data[[x_feature_plot]], .data[[y_feature_plot]])
     ) +
       ggplot2::geom_point(

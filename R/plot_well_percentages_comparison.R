@@ -5,7 +5,7 @@ plot_well_percentages_comparison <- function(data,
   
   ggplot(data,
          aes(.data$percentage_SABGal_positive, .data$percentage_EdU_positive)
-         ) +
+  ) +
     geom_point(
       shape = 21,
       color = "black",
@@ -19,7 +19,7 @@ plot_well_percentages_comparison <- function(data,
       breaks = seq(0, 1, by = 0.2),
       labels = scales::percent,
       name = "% SA-\u03B2-Gal+ cells"
-      ) +
+    ) +
     scale_y_continuous(
       limits = c(0,1),
       breaks = seq(0, 1, by = 0.2),
@@ -29,5 +29,5 @@ plot_well_percentages_comparison <- function(data,
     labs(title = paste0("Well % of SA-\u03B2-Gal+ EdU+ Cells; Treatment Comparison: ", comparison_var)) +
     scale_fill_grey(start = 1, end = 0) +
     guides(fill = guide_legend(override.aes = list(alpha = 1,
-                                                    size = 3))) # to ensure colors in legend are visible
+                                                   size = 3))) # to ensure colors in legend are visible
 }
