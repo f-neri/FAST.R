@@ -91,16 +91,9 @@ plot_well_percentages <- function(data,
         scale_fill_brewer +
         ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
     })
-
-    # Display the plots
-    # print(plot_well_percentages_plots[1])
     
     # Combine plots into a single grid
     plot_well_percentages_plots <- patchwork::wrap_plots(plots, ncol = 2)
-    
-    # for (plot in plot_well_percentages_plots) {
-    #   print(plot)
-    # }
     
   }
   

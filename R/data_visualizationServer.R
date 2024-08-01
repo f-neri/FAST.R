@@ -303,7 +303,7 @@ data_visualizationServer <- function(id) {
     # well percentages comparison
     well_percentages_comparison <- reactive({
       plot <- plot_well_percentages_comparison(data = df(),
-                                               # input_features = input_features(),
+                                               input_features = input_features(),
                                                add_vars = additional_variables(),
                                                comparison_var = input$select_comparison_variable,
                                                other_add_var = other_add_var())

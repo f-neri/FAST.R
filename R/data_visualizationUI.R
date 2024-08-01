@@ -230,7 +230,6 @@ data_visualizationUI <- function(id) {
           column(12, offset = 0, align = "center",
                  br(),br(),
                  plotOutput(NS(id, "example_graph")),
-                 # uiOutput(NS(id, "example_graph")), # Dynamic plots container
                  plotOutput(NS(id, "example_graph_comparison"))
           )
         )),
