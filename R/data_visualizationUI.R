@@ -216,11 +216,21 @@ data_visualizationUI <- function(id) {
         ),
     
     # Example graphs ----------- 
+    # div(id = NS(id)("example_graphs"),
+    #     fluidRow(
+    #       column(12, offset = 0, align = "center",
+    #              br(), br(),
+    #              uiOutput(NS(id, "dynamic_plots")) # Dynamic plots container
+    #       )
+    #     )
+    # ),
+    
     div(id = NS(id)("example_graphs"),
         fluidRow(
           column(12, offset = 0, align = "center",
                  br(),br(),
                  plotOutput(NS(id, "example_graph")),
+                 # uiOutput(NS(id, "example_graph")), # Dynamic plots container
                  plotOutput(NS(id, "example_graph_comparison"))
           )
         )),

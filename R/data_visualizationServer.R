@@ -232,13 +232,13 @@ data_visualizationServer <- function(id) {
     
     # calculate widths and heigths
     dims_plot <- reactive({
-      
+
       # create df with all widths and heights and calculate respective values
       df <- tibble::tibble(
         dim = c("width", "height",
                 "width_comparison", "height_comparison",
                 "width_percentages", "height_percentages"),
-        version = c("72"))  %>% # DEBUGGING
+        version = c("72"))  %>%
         dplyr::mutate(value = dplyr::case_when(
           dim == "width" ~ ifelse(length(additional_variables()) > 0,
                                   300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
@@ -257,15 +257,15 @@ data_visualizationServer <- function(id) {
                                                60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
                                                60 * length(unique(df()$Condition)))
         ))
-      print("dupes")
+
       # create duplicate df with values adjusted based on dpi
       df_duplicate <- df %>%
         dplyr::mutate(version = "dpi_adj",
                       value = .data$value * dpi()/72)
-      
+
       # merge dfs
       df <- dplyr::bind_rows(df, df_duplicate)
-      
+
       # return df
       df
     }) %>%
@@ -273,7 +273,6 @@ data_visualizationServer <- function(id) {
     
     # Plot example graphs -----------------------------------------------------
     
-    # well percentages
     well_percentages <- reactive({
       plot <- plot_well_percentages(data = df(),
                                     input_features = input_features(),
@@ -282,7 +281,7 @@ data_visualizationServer <- function(id) {
       plot +
         ggplot2_theme()
     })
-    
+
     output$example_graph <- renderPlot({
       well_percentages()
     },
@@ -302,6 +301,8 @@ data_visualizationServer <- function(id) {
     #  )
     
     # well percentages comparison
+    # plots <- plot_well_percentages(data, input_features, add_vars, scale_fill_brewer)
+    
     well_percentages_comparison <- reactive({
       plot <- plot_well_percentages_comparison(data = df(),
                                                add_vars = additional_variables(),
