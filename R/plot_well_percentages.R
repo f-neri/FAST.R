@@ -58,15 +58,12 @@ plot_well_percentages <- function(data,
     
   } else { # 3+ stains
     feat_combns <- get_combos(input_features[-1], special = NULL, permute_combn = "combn")
-    print(feat_combns)
     
     plots <- lapply(feat_combns, function(pair) {
       x_feature <- pair[1]
       x_feature_plot <- paste0("percentage_", x_feature, "_positive")
-      print(x_feature)
       y_feature <- pair[2]
       y_feature_plot <- paste0("percentage_", y_feature, "_positive")
-      print(y_feature)
       
       ggplot2::ggplot(data,
                       ggplot2::aes(x = .data[[x_feature_plot]], y = .data[[y_feature_plot]])) +

@@ -159,9 +159,8 @@ data_visualizationServer <- function(id) {
     df_single_cell <- reactive({
       
       # Inputs from App
-      # input_features <- input$data_input_feature
-      # print("input features")
-      # print(input_features)
+      input_features <- input$data_input_feature
+      print(input_features)
       
       df_single_cell <- if (input$remove_background == TRUE) { # remove background cells/wells
         dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
@@ -171,20 +170,16 @@ data_visualizationServer <- function(id) {
       
       df_single_cell <- df_single_cell %>%
         dplyr::mutate(dplyr::across(dplyr::all_of(additional_variables()), factor)) %>% # change add_vars into factors
-        # dplyr::filter(dplyr::all_of(input_features) > 0)
-        dplyr::filter(.data$SABGal > 0, .data$EdU > 0) %>% # remove negative values
+        dplyr::rowwise() %>%
+        dplyr::filter(all(dplyr::c_across(dplyr::all_of(input_features)) > 0)) %>%
+        dplyr::ungroup() %>%
         dplyr::mutate( # calculate log10 values
-        #   across(
-        #     .cols = all_of(input_features),
-        #     .fns = list(log10 = ~log10(.x)),
-        #     .name = "{.col_log10}"
-        #   )
-          SABGal_log10 = log10(.data$SABGal),
-          EdU_log10 = log10(.data$EdU)
+          dplyr::across(
+            .cols = all_of(input_features),
+            .fns = list(log10 = ~log10(.x)),
+            .names = "{.col}_log10"
+          )
         )
-      # print("names of sf_single_cell")
-      # print(names(df_single_cell))
-      
       # return single cell df
       df_single_cell
     }) %>%
@@ -214,12 +209,20 @@ data_visualizationServer <- function(id) {
     
     # df_thresholds
     df_thresholds <- reactive({
+      # Inputs from App
+      input_features <- input$data_input_feature
+      input_features_threshold <- paste0(input_features, "_threshold_average")
+      
       generate_df_thresholds(data = df(),
+                             input_features = input_features(),
                              additional_variables = additional_variables()
       ) %>%
-        dplyr::mutate(
-          SABGal_threshold_average_log10 = log10(.data$SABGal_threshold_average),
-          EdU_threshold_average_log10 = log10(.data$EdU_threshold_average)
+        dplyr::mutate( # calculate log10 threshold values
+          dplyr::across(
+            .cols = dplyr::all_of(input_features_threshold),
+            .fns = list(log10 = ~log10(.x)),
+            .names = "{.col}_log10"
+          )
         )
     })
     
@@ -346,7 +349,10 @@ data_visualizationServer <- function(id) {
       # 2D plots  -----------------------------------------------------------
       
       # single cell staining
-      single_cell_SABGal_EdU_staining <- plot_single_cell_SABGal_EdU_staining(data = df_single_cell(),
+      print(head(df_single_cell()))
+      
+      single_cell_staining <- plot_single_cell_staining(data = df_single_cell(),
+                                                                              input_features = input_features(),
                                                                               data_thresholds = df_thresholds(),
                                                                               additional_variables = additional_variables(),
                                                                               scale_color_brewer = scale_color_brewer_conditions())
@@ -400,7 +406,7 @@ data_visualizationServer <- function(id) {
       }
       
       # Return plot list  -----------------------------------------------------------
-      list_plots <- list(single_cell_SABGal_EdU_staining = single_cell_SABGal_EdU_staining,
+      list_plots <- list(single_cell_staining = single_cell_staining,
                          percentages = percentages,
                          median_SABGal_EdU_staining = median_SABGal_EdU_staining,
                          well_percentages = well_percentages)
@@ -442,11 +448,11 @@ data_visualizationServer <- function(id) {
         dir.create(temp_directory)
         
         # single cell SABGal EdU
-        grDevices::png(file.path(temp_directory, "single_cell_SABGal_EdU_staining.png"),
+        grDevices::png(file.path(temp_directory, "single_cell_staining.png"),
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$single_cell_SABGal_EdU_staining)
+        print(graphs()$single_cell_staining)
         grDevices::dev.off()
         
         # percentages
@@ -508,24 +514,24 @@ data_visualizationServer <- function(id) {
     # Render and download buttons for all graphs -----------------------------------------------------------
     
     # single cell SABGal EdU
-    output$single_cell_SABGal_EdU_staining <- renderPlot({ # plot
-      graphs()$single_cell_SABGal_EdU_staining
+    output$single_cell_staining <- renderPlot({ # plot
+      graphs()$single_cell_staining
     },
     width = function() {get_dim(dims_plot(), "width", "72")},
     height = function() {get_dim(dims_plot(), "height", "72")},
     res = 72) %>%
       bindEvent(input$generate_graphs)
     
-    output$download_single_cell_SABGal_EdU_staining <- downloadHandler( # download button
+    output$download_single_cell_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".png")
+        paste0(Sys.Date(), "_single_cell_staining", ".png")
       },
       content = function(file) {
         grDevices::png(file,
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$single_cell_SABGal_EdU_staining)
+        print(graphs()$single_cell_staining)
         grDevices::dev.off()
       }
     )

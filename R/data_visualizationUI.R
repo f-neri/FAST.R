@@ -259,8 +259,8 @@ data_visualizationUI <- function(id) {
           column(12, offset = 0, align = "center",
                  br(),
                  # single cell SABGal EdU staining
-                 plotOutput(NS(id, "single_cell_SABGal_EdU_staining")),
-                 downloadButton(NS(id, "download_single_cell_SABGal_EdU_staining"), label = "Download graph above"),
+                 plotOutput(NS(id, "single_cell_staining")),
+                 downloadButton(NS(id, "download_single_cell_staining"), label = "Download graph above"),
                  br(), hr(),
                  
                  # percentages
