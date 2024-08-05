@@ -395,10 +395,11 @@ data_visualizationServer <- function(id) {
         # Cell count percentages
         
         # median staining comparison
-        median_SABGal_EdU_staining_comparison <- plot_median_SABGal_EdU_staining_comparison(data = df(),
-                                                                                            add_vars = additional_variables(),
-                                                                                            comparison_var = input$select_comparison_variable,
-                                                                                            other_add_var = other_add_var())
+        median_staining_comparison <- plot_median_staining_comparison(data = df(),
+                                                                                 input_features = input_features(),
+                                                                                 add_vars = additional_variables(),
+                                                                                 comparison_var = input$select_comparison_variable,
+                                                                                 other_add_var = other_add_var())
         
         # well percentages comparison
         well_percentages_comparison <- well_percentages_comparison()
@@ -412,7 +413,7 @@ data_visualizationServer <- function(id) {
                          well_percentages = well_percentages)
       
       if (input$generate_comparison_graphs == TRUE) {
-        list_plots_comparison <- list(median_SABGal_EdU_staining_comparison = median_SABGal_EdU_staining_comparison,
+        list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
                                       well_percentages_comparison = well_percentages_comparison)
         
         list_plots <- c(list_plots, list_plots_comparison)
@@ -483,11 +484,11 @@ data_visualizationServer <- function(id) {
         if (input$generate_comparison_graphs == TRUE) {
           
           # median SABGal EdU staining comparison
-          grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining_comparison.png"),
+          grDevices::png(file.path(temp_directory, "median_staining_comparison.png"),
                          width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
                          height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
                          res = input$dpi)
-          print(graphs()$median_SABGal_EdU_staining_comparison)
+          print(graphs()$median_staining_comparison)
           grDevices::dev.off()
           
           # well percentages comparison
@@ -610,24 +611,24 @@ data_visualizationServer <- function(id) {
       if (input$generate_comparison_graphs == TRUE) {
         
         # median SABGal EdU staining comparison
-        output$median_SABGal_EdU_staining_comparison <- renderPlot({ # plot
-          graphs()$median_SABGal_EdU_staining_comparison
+        output$median_staining_comparison <- renderPlot({ # plot
+          graphs()$median_staining_comparison
         },
         width = function() {get_dim(dims_plot(), "width_comparison", "72")},
         height = function() {get_dim(dims_plot(), "height_comparison", "72")},
         res = 72
         )
         
-        output$download_median_SABGal_EdU_staining_comparison <- downloadHandler( # download
+        output$download_median_staining_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".png")
+            paste0(Sys.Date(), "_median_staining_comparison",  ".png")
           },
           content = function(file) {
             grDevices::png(file,
                            width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
                            height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
                            res = input$dpi)
-            print(graphs()$median_SABGal_EdU_staining_comparison)
+            print(graphs()$median_staining_comparison)
             grDevices::dev.off()
           }
         )

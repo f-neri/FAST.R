@@ -281,8 +281,8 @@ data_visualizationUI <- function(id) {
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",
                      # median SABGal EdU staining Comparison
-                     plotOutput(NS(id, "median_SABGal_EdU_staining_comparison")),
-                     downloadButton(NS(id, "download_median_SABGal_EdU_staining_comparison"), label = "Download graph above"),
+                     plotOutput(NS(id, "median_staining_comparison")),
+                     downloadButton(NS(id, "download_median_staining_comparison"), label = "Download graph above"),
                      br(), hr(),
                      
                      # well percentages comparison

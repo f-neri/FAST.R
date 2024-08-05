@@ -51,7 +51,7 @@ plot_well_percentages <- function(data,
                                   breaks = seq(0, 1, by = 0.2)) +
       ggplot2::scale_y_continuous(labels = scales::percent, name = paste0("% ", y_feature, "+ Cells"),
                                   breaks = seq(0, 1, by = 0.2)) +
-      ggplot2::labs(title = paste0("Well % of", x_feature, "+ ", y_feature, "+ Cells"),
+      ggplot2::labs(title = paste0("Well % of ", x_feature, "+ ", y_feature, "+ Cells"),
                     fill = "Condition") +
       scale_fill_brewer +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
