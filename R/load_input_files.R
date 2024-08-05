@@ -12,16 +12,15 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
   ## create IAoutput and plate_metadata tibbles
   IAoutput_files <- tibble::tibble(
     IAoutput_name = Image_Analyst_output$name, # IAoutput_name = "example_Image_Analyst_Output_File"
-    IAoutput_datapath = Image_Analyst_output$datapath # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File.xlsx'
+    IAoutput_datapath = Image_Analyst_output$datapath
   ) %>%
     # dplyr::arrange(IAoutput_name)
     dplyr::arrange(.data$IAoutput_name)
   
   plate_metadata_files <- tibble::tibble(
-    metadata_name = plate_metadata$name, # "example_Image_Analyst_Output_File_metadata",
-    metadata_datapath = plate_metadata$datapath # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File_metadata.csv' #
+    metadata_name = plate_metadata$name,
+    metadata_datapath = plate_metadata$datapath
   ) %>%
-    # dplyr::arrange(metadata_name)
     dplyr::arrange(.data$metadata_name)
   
   ## check that each IAoutput file has a corresponding plate_metadata file with appropriate name (IAoutput_metadata.csv)
@@ -40,7 +39,7 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
   for (i in seq_len(nrow(Input_files))) {
     
     # read metadata
-    Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i], # '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File_metadata.csv'
+    Input_files$metadata_df[[i]] <- plater::read_plate(file = Input_files$metadata_datapath[i],
                                                        well_ids_column = "well",    # name to give column of well IDs
                                                        sep = ",") %>%               # separator used in the csv file
       dplyr::select(dplyr::where(~ !all(is.na(.x)))) # remove columns whose values are all NA
@@ -117,7 +116,6 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     
     # read IAoutput
     Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = Input_files$IAoutput_datapath[i], skip = 1, na = "NA")
-    # Input_files$IAoutput_df[[i]] <- readxl::read_xlsx(path = '/Users/alicezhang/Downloads/Example_Data/example_Image_Analyst_Output_File.xlsx', skip = 1, na = "NA")
     
     # check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
     n_channels <- Input_files$IAoutput_df[[i]]$Channel %>% unique() %>% length()

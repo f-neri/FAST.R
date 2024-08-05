@@ -104,9 +104,9 @@ data_analysisServer <- function(id) {
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
                 input$background_threshold,
-                input$input_ML_features, # 07/15 Change
-                input$morphological_feature, # 07/11 Change
-                input$feature_list) %>% # 07/11 Change
+                input$input_ML_features,
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # Generate single_cell_data table -----------------------------------------------------------
@@ -119,10 +119,9 @@ data_analysisServer <- function(id) {
       
       Input_files <- Input_files()
       
-      # 07/11 temp change, before I update feature_list inputs
       # Optional input handling: input$input_ML_features
       ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
-      # feature_list <- unlist(strsplit(input$feature_list, ';'))
+      
       single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$input_feature, input$input_ML_features)
       
       # return single cell df
@@ -132,9 +131,9 @@ data_analysisServer <- function(id) {
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
                 input$background_threshold,
-                input$input_ML_features, # 07/15 Change
-                input$morphological_feature, # 07/11 Change
-                input$feature_list) %>%  #, # 07/11 Change
+                input$input_ML_features,
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # Generate analysis_report table ------------------------------------------
@@ -153,9 +152,8 @@ data_analysisServer <- function(id) {
       analysis_report <- analyze_single_cell_data(
         single_cell_data(),
         input$background_threshold,
-        input$morphological_feature, # 07/11 Change
+        input$morphological_feature,
         input$input_feature
-        #unlist(strsplit(input$input_feature, ';')) # 07/11 Change
       )
       
       # return analysis report df
@@ -164,9 +162,8 @@ data_analysisServer <- function(id) {
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
                 input$background_threshold,
-                input$morphological_feature, # 07/11 Change
-                input$feature_list) %>% #, # 07/11 Change
-                #input$ML_features) %>% # 07/12 Change
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # OUTPUT ------------------------------------------------------------------
@@ -247,7 +244,6 @@ data_analysisServer <- function(id) {
       additional_variables <- additional_variables[-c(pos_cell_counts:length(additional_variables))] # remove all vars after cell_counts, leaving only possible additional vars
       
       # create vector with cols to visualize
-      # 07/11 Change
       all_feature_list <- c(input$morphological_feature, input$input_feature)
       median_cols <- paste0(all_feature_list, "_median")
       percentage_pos_cols <- paste0("percentage_", all_feature_list, "_positive")
@@ -255,10 +251,6 @@ data_analysisServer <- function(id) {
                        "cell_counts", median_cols,
                        percentage_pos_cols
       )
-      # cols_to_vis <- c("plate", "well", "Condition", additional_variables,
-      #                  "cell_counts", "Nuclear_Area_median", "EdU_median", "SABGal_median",
-      #                  "percentage_EdU_positive", "percentage_SABGal_positive"
-      #                  )
       
       # get indices of cols to NOT visualize
       indices <- which(!(names(analysis_report()) %in% cols_to_vis)) %>% -1 # indices in columnDefs calls start from 0, not 1

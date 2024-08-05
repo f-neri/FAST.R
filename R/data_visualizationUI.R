@@ -33,7 +33,6 @@ data_visualizationUI <- function(id) {
                br(),
                fileInput(NS(id, "single_cell_data_df"), label = "Single Cell Data", multiple = FALSE, accept = ".csv"),
                fileInput(NS(id, "analysis_report_df"), label = "Analysis Report", multiple = FALSE, accept = ".csv"),
-               # 07/21
                selectizeInput(
                  inputId = NS(id, "morph_data_input_feature"),
                  label = "Morphological Data Features",
@@ -216,15 +215,6 @@ data_visualizationUI <- function(id) {
         ),
     
     # Example graphs ----------- 
-    # div(id = NS(id)("example_graphs"),
-    #     fluidRow(
-    #       column(12, offset = 0, align = "center",
-    #              br(), br(),
-    #              uiOutput(NS(id, "dynamic_plots")) # Dynamic plots container
-    #       )
-    #     )
-    # ),
-    
     div(id = NS(id)("example_graphs"),
         fluidRow(
           column(12, offset = 0, align = "center",

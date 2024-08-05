@@ -1,7 +1,7 @@
 check_file_numbers_match <- function(IAoutput_file_names,
                                      metadata_file_names) {
   
-  # check that an equal number of IAoutput and metadata files have been uploaded
+  # Check that an equal number of IAoutput and metadata files have been uploaded
   if (length(IAoutput_file_names) != length(metadata_file_names)) {
     enable_button_analysis()
     validate(paste0(

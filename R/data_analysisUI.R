@@ -106,9 +106,7 @@ data_analysisUI <- function(id) {
         )
       ),
       
-      # 07/11 Change
-      # add morphological feature
-      # new morphological_feature input
+      # Morphological feature input
       fluidRow(
         # Input
         column(3, offset = 3, align = "center",
@@ -121,8 +119,6 @@ data_analysisUI <- function(id) {
                  options = list(placeholder = 'Select morphological feature',
                                 plugins = list('remove_button', 'drag_drop'))
                )
-               # textInput(NS(id, "morphological_feature"), label = "Morphological Feature",
-               #           value = "Nuclear_Area", width = "180px")
         ),
         # Instructions
         column(5, offset = 0,
@@ -155,8 +151,7 @@ data_analysisUI <- function(id) {
         )
       ),
       
-      ## BASED ON INPUT FEATURES IN STAIN AND MORPHOLOGICAL, DROP DOWN MENU TO CHOOSE WHICH ML FEATURES TO PICK FROM 
-      # Create button
+      # Create button for ML Feature selection
       fluidRow(
         column(3, offset = 3, align = "center",
                actionButton(NS(id, "generate_dropdown"), "Show ML Feature Selection Dropdown")

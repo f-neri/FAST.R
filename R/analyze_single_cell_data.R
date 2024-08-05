@@ -17,7 +17,7 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   feature_list <- c(input_morphological_feature_list, input_feature_list)
   
   # Define the expected variables including 'plate'
-  expected_variables <- c("plate", "well", "cell_ID", "Condition", feature_list)#"Nuclear_Area", "DAPI", "EdU", "SABGal")
+  expected_variables <- c("plate", "well", "cell_ID", "Condition", feature_list)
   
   # Identify additional variables
   additional_vars <- setdiff(names(df_single_cell_data), expected_variables)
@@ -77,19 +77,14 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   
   # Generate summary table --------------------------------------------------
   
-  # grouping arguments for summarise()
-  # 07/09 working on
+  # Grouping arguments for summarise()
   single_cell_grouping <- c("well", "Condition", additional_variables)
-  # print("single_cell_grouping")
-  # print(single_cell_grouping)
   
-  # 07/25 - get cell_counts
+  # Get cell_counts
   cell_counts_df <- df_single_cell_data %>%
     dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
     dplyr::summarise(cell_counts = dplyr::n(), .groups = 'drop')
-  
-  print("start summary list")
-  
+
   # Fill summary data frame
   index <- 1
   summary_list <- purrr::map(feature_list, function(feature_name) {
@@ -121,10 +116,8 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
     dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
     counts_percentages(pos_neg_pairs)
   
-  print(colnames(summary_df_counts_percentages))
   summary_df_counts_percentages <- summary_df_counts_percentages %>% 
     percentage_calculation(pos_neg_pairs, summary_df_list$cell_counts)
-  print(colnames(summary_df_counts_percentages))
   
   # Full Summary Data Frame
   summary_df <- dplyr::left_join(summary_df_list, summary_df_counts_percentages, by = single_cell_grouping)
@@ -139,24 +132,19 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
         cell_counts = dplyr::n(),
         ML_Prediction_percentage_positive = sum(.data$ML_Prediction == "+")/.data$cell_counts,
         ML_Prediction_percentage_negative = sum(.data$ML_Prediction == "-")/.data$cell_counts
-        # `ML_Prediction_% +` = sum(.data$ML_Prediction == "+")/.data$cell_counts,
-        # `ML_Prediction_% -` = sum(.data$ML_Prediction == "-")/.data$cell_counts
       ) %>%
       dplyr::ungroup()
     
     summary_df <- summary_df %>% dplyr::left_join(df_ML_Training) %>%
       dplyr::select(.data$well, .data$Condition,
                     .data$ML_Training, .data$ML_Prediction_percentage_positive, .data$ML_Prediction_percentage_negative,
-                    # .data$ML_Training, .data$`ML_Prediction_% +`, .data$`ML_Prediction_% -`,
                     dplyr::everything()
       )
   }
   
   # Add fold change for median values ---------------------------------------
   
-  # 07/10 - need to change
-  
-  # generate mean median values
+  # Generate mean of median values
   median_cols <- paste0(feature_list, "_median")
   reference_signal <- summary_df[!grepl("_background$", summary_df$Condition), ] %>%
     dplyr::group_by(!!!dplyr::syms(c("Condition", additional_variables))) %>%
@@ -169,9 +157,9 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
       .groups = "drop"
     )
   
-  # identify lowest non-background mean value to use as reference
+  # Identify lowest non-background mean value to use as reference
   
-  ## calculate min value
+  ## Calculate min value
   median_ref_cols <- paste0(median_cols, "_reference")
   
   if (length(additional_variables) > 0) {
@@ -195,20 +183,20 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
         )
       )}
   
-  ## set min value as reference for all Conditions
+  ## Set min value as reference for all Conditions
   if (length(additional_variables) > 0) {
     reference_signal_min <- reference_signal %>%
       dplyr::select(!dplyr::all_of(median_ref_cols)) %>%
       dplyr::left_join(reference_signal_min)
   }
   
-  ## set min value as reference for all background Conditions
+  ## Set min value as reference for all background Conditions
   reference_signal_min_background <- reference_signal_min %>%
     dplyr::mutate(Condition = paste0(.data$Condition, "_background"))
   
   reference_signal_min <- dplyr::bind_rows(reference_signal_min, reference_signal_min_background)
   
-  # calculate fold change compared to reference
+  # Calculate fold change compared to reference
   median_fold_change_cols <- paste0(median_cols, "_fold_change")
   summary_df <- summary_df %>%
     dplyr::left_join(reference_signal_min)
@@ -229,24 +217,24 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   
   # Re-add plate column -----------------------------------------------------
   
-  # create small df with plate column
+  # Create small df with plate column
   plate_df <- df_single_cell_data %>%
     dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables)) %>%
     unique()
   
-  # join plate_df with summary df
+  # Join plate_df with summary df
   summary_df <- dplyr::left_join(summary_df, plate_df) %>%
     dplyr::select(.data$plate, dplyr::everything()) # rearrange plate to be 1st column
   
-  # reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
+  # Reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
   
-  # identify percentage columns
+  # Identify percentage columns
   is_percentage_column <- grepl("percentage|%", names(summary_df))
   
-  # multiply proportion values by 100
+  # Multiply proportion values by 100
   summary_df[ , is_percentage_column] <- summary_df[ , is_percentage_column] * 100
   
-  # identify percentage a double columns
+  # Identify percentage a double columns
   is_double_column <- sapply(summary_df, is.double)
   
   # Format values to 2 decimal digits
@@ -254,13 +242,8 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
   
   # Adjust column order -----------------------------------------------------
   
-  # 07/11 change (changes in col order are now saved, check with Francesco)
   anchor_point <- paste0(feature_list[length(feature_list)], "_max")
-  # summary_df <- summary_df %>%
-  #   dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
-  #   rearrange_df_columns(.,
-  #                      cols_to_move = all_of(c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change")), #median_fold_change_cols), #c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
-  #                      col_anchor =  anchor_point)
+  
   summary_df <- summary_df %>%
     dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
     rearrange_df_columns(.,
@@ -268,8 +251,7 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
                          col_anchor =  anchor_point)
   summary_df <- summary_df %>% 
     dplyr::select("plate", single_cell_grouping, "cell_counts", everything())
-  print("final df")
-  print(names(summary_df))
+  
   # Rename additional_variables with original names -------------------------
   
   if (length(additional_variables) > 0) {

@@ -23,12 +23,11 @@ generate_single_cell_df <- function(Input_files,
   
   # tidy IAoutput and merge with metadata -----------------------------------
   
-  Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create emtpy list-column to store tidy data
+  Input_files$tidy_df <- vector(mode = "list", length = nrow(Input_files)) # create empty list-column to store tidy data
   
   for (i in seq_len(nrow(Input_files))) {
 
     # tidy IAoutput
-    # 07/08 tidied_IAoutput <- tidy_IAoutput(Input_files$IAoutput_df[[i]])
     tidied_IAoutput <- tidy_IAoutput(Input_files$IAoutput_df[[i]], feature_dictionary)
 
     # add metadata to tidied_IAoutput
@@ -48,7 +47,7 @@ generate_single_cell_df <- function(Input_files,
     # check if Training metadata was provided
     if (any(names(df) %in% "ML_Training")) {
 
-      # train Random Forest model
+      # Train Random Forest model
       ## generate training df
       df_training <- df %>%
         dplyr::filter(
@@ -62,18 +61,13 @@ generate_single_cell_df <- function(Input_files,
           ML_Training = factor(.data$ML_Training, levels = c("+", "-"))
         )
 
-      ## train a Random Forest model w/ the
+      ## Train a Random Forest model w/ the
       ## carete package https://cran.r-project.org/web/packages/caret/vignettes/caret.html
 
       set.seed(123) # set seed to ensure reproducibility for model training and prediction
-      # if(!length(input_ML_features) == 0) {
-      #   
-      # }
       RFmodel <-  caret::train(
         x = df_training %>%
           dplyr::select(all_of(input_ML_features)),
-          # dplyr::select(all_of(feature_list)),#input_ML_features)), # change to select for the features
-          #dplyr::select("Nuclear_Area", "EdU", "SABGal"),
         y = df_training$ML_Training,
         method = "rf",
         preProc = c("center", "scale"),
