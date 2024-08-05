@@ -160,7 +160,6 @@ data_visualizationServer <- function(id) {
       
       # Inputs from App
       input_features <- input$data_input_feature
-      print(input_features)
       
       df_single_cell <- if (input$remove_background == TRUE) { # remove background cells/wells
         dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
@@ -396,10 +395,10 @@ data_visualizationServer <- function(id) {
         
         # median staining comparison
         median_staining_comparison <- plot_median_staining_comparison(data = df(),
-                                                                                 input_features = input_features(),
-                                                                                 add_vars = additional_variables(),
-                                                                                 comparison_var = input$select_comparison_variable,
-                                                                                 other_add_var = other_add_var())
+                                                                      input_features = input_features(),
+                                                                      add_vars = additional_variables(),
+                                                                      comparison_var = input$select_comparison_variable,
+                                                                      other_add_var = other_add_var())
         
         # well percentages comparison
         well_percentages_comparison <- well_percentages_comparison()
@@ -514,7 +513,7 @@ data_visualizationServer <- function(id) {
     
     # Render and download buttons for all graphs -----------------------------------------------------------
     
-    # single cell SABGal EdU
+    # single cell stains
     output$single_cell_staining <- renderPlot({ # plot
       graphs()$single_cell_staining
     },
@@ -560,7 +559,7 @@ data_visualizationServer <- function(id) {
       }
     )
     
-    # median_SABGal_EdU_staining
+    # median_staining
     output$median_staining <- renderPlot({ # plot
       graphs()$median_staining
     },
@@ -610,7 +609,7 @@ data_visualizationServer <- function(id) {
     observe({
       if (input$generate_comparison_graphs == TRUE) {
         
-        # median SABGal EdU staining comparison
+        # median staining comparison
         output$median_staining_comparison <- renderPlot({ # plot
           graphs()$median_staining_comparison
         },
