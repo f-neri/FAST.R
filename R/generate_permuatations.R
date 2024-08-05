@@ -5,8 +5,8 @@ generate_permutations <- function(features) {
   # Generate all unique permutations of positive/negative
   permutations <- c(
     paste0(feat1, "_positive_", feat2, "_positive"),
-    paste0(feat1, "_positive_", feat2, "_negative"),
-    paste0(feat1, "_negative_", feat2, "_positive"),
+    # paste0(feat1, "_positive_", feat2, "_negative"),
+    # paste0(feat1, "_negative_", feat2, "_positive"),
     paste0(feat2, "_positive_", feat1, "_negative"),
     paste0(feat2, "_negative_", feat1, "_positive"),
     paste0(feat1, "_negative_", feat2, "_negative")

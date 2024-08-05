@@ -349,8 +349,6 @@ data_visualizationServer <- function(id) {
       # 2D plots  -----------------------------------------------------------
       
       # single cell staining
-      print(head(df()))
-      
       single_cell_staining <- plot_single_cell_staining(data = df_single_cell(),
                                                         input_features = input_features(),
                                                         data_thresholds = df_thresholds(),
@@ -359,13 +357,14 @@ data_visualizationServer <- function(id) {
       
       # median staining
       median_staining <- plot_median_staining(df(),
-                                                         input_features = input_features(),
-                                                         df_thresholds(),
-                                                         additional_variables = additional_variables(),
-                                                         scale_fill_brewer = scale_fill_brewer_conditions())
+                                              input_features = input_features(),
+                                              df_thresholds(),
+                                              additional_variables = additional_variables(),
+                                              scale_fill_brewer = scale_fill_brewer_conditions())
       
       # percentages
       percentages <- plot_percentages(df(),
+                                      input_features = input_features(),
                                       additional_variables = additional_variables(),
                                       size_axis_text = input$size_axis_text)
       
