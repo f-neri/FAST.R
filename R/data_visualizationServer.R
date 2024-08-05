@@ -349,19 +349,20 @@ data_visualizationServer <- function(id) {
       # 2D plots  -----------------------------------------------------------
       
       # single cell staining
-      print(head(df_single_cell()))
+      print(head(df()))
       
       single_cell_staining <- plot_single_cell_staining(data = df_single_cell(),
-                                                                              input_features = input_features(),
-                                                                              data_thresholds = df_thresholds(),
-                                                                              additional_variables = additional_variables(),
-                                                                              scale_color_brewer = scale_color_brewer_conditions())
+                                                        input_features = input_features(),
+                                                        data_thresholds = df_thresholds(),
+                                                        additional_variables = additional_variables(),
+                                                        scale_color_brewer = scale_color_brewer_conditions())
       
       # median staining
-      median_SABGal_EdU_staining <- plot_median_SABGal_EdU_staining(df(),
-                                                                    df_thresholds(),
-                                                                    additional_variables = additional_variables(),
-                                                                    scale_fill_brewer = scale_fill_brewer_conditions())
+      median_staining <- plot_median_staining(df(),
+                                                         input_features = input_features(),
+                                                         df_thresholds(),
+                                                         additional_variables = additional_variables(),
+                                                         scale_fill_brewer = scale_fill_brewer_conditions())
       
       # percentages
       percentages <- plot_percentages(df(),
@@ -408,7 +409,7 @@ data_visualizationServer <- function(id) {
       # Return plot list  -----------------------------------------------------------
       list_plots <- list(single_cell_staining = single_cell_staining,
                          percentages = percentages,
-                         median_SABGal_EdU_staining = median_SABGal_EdU_staining,
+                         median_staining = median_staining,
                          well_percentages = well_percentages)
       
       if (input$generate_comparison_graphs == TRUE) {
@@ -463,12 +464,12 @@ data_visualizationServer <- function(id) {
         print(graphs()$percentages)
         grDevices::dev.off()
         
-        # median_SABGal_EdU_staining
-        grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining.png"),
+        # median_staining
+        grDevices::png(file.path(temp_directory, "median_staining.png"),
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$median_SABGal_EdU_staining)
+        print(graphs()$median_staining)
         grDevices::dev.off()
         
         # well percentages
@@ -560,24 +561,24 @@ data_visualizationServer <- function(id) {
     )
     
     # median_SABGal_EdU_staining
-    output$median_SABGal_EdU_staining <- renderPlot({ # plot
-      graphs()$median_SABGal_EdU_staining
+    output$median_staining <- renderPlot({ # plot
+      graphs()$median_staining
     },
     width = function() {get_dim(dims_plot(), "width", "72")},
     height = function() {get_dim(dims_plot(), "height", "72")},
     res = 72) %>%
       bindEvent(input$generate_graphs)
     
-    output$download_median_SABGal_EdU_staining <- downloadHandler( # download button
+    output$download_median_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".png")
+        paste0(Sys.Date(), "_median_staining",  ".png")
       },
       content = function(file) {
         grDevices::png(file,
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$median_SABGal_EdU_staining)
+        print(graphs()$median_staining)
         grDevices::dev.off()
       }
     )

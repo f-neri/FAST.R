@@ -269,8 +269,8 @@ data_visualizationUI <- function(id) {
                  br(), hr(),
                  
                  # median SABGal EdU staining
-                 plotOutput(NS(id, "median_SABGal_EdU_staining")),
-                 downloadButton(NS(id, "download_median_SABGal_EdU_staining"), label = "Download graph above"),
+                 plotOutput(NS(id, "median_staining")),
+                 downloadButton(NS(id, "download_median_staining"), label = "Download graph above"),
                  br(), hr(),
                  
                  # well percentages
