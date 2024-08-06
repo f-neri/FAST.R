@@ -5,16 +5,15 @@
 ################################################################################
 
 load_input_files <- function(Image_Analyst_output, plate_metadata) {
-  # 07/08 temp comment - undo later! --> undid
+  
   check_file_numbers_match(Image_Analyst_output$name,
                            plate_metadata$name)
   
   ## create IAoutput and plate_metadata tibbles
   IAoutput_files <- tibble::tibble(
-    IAoutput_name = Image_Analyst_output$name, # IAoutput_name = "example_Image_Analyst_Output_File"
+    IAoutput_name = Image_Analyst_output$name,
     IAoutput_datapath = Image_Analyst_output$datapath
   ) %>%
-    # dplyr::arrange(IAoutput_name)
     dplyr::arrange(.data$IAoutput_name)
   
   plate_metadata_files <- tibble::tibble(

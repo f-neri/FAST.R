@@ -93,6 +93,5 @@ plot_well_percentages <- function(data,
     plot_well_percentages_plots <- patchwork::wrap_plots(plots, ncol = 2)
     
   }
-  
   plot_well_percentages_plots
 }

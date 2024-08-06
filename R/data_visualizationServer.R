@@ -234,7 +234,7 @@ data_visualizationServer <- function(id) {
     
     # calculate widths and heigths
     dims_plot <- reactive({
-
+      
       # create df with all widths and heights and calculate respective values
       df <- tibble::tibble(
         dim = c("width", "height",
@@ -264,10 +264,9 @@ data_visualizationServer <- function(id) {
       df_duplicate <- df %>%
         dplyr::mutate(version = "dpi_adj",
                       value = .data$value * dpi()/72)
-
       # merge dfs
       df <- dplyr::bind_rows(df, df_duplicate)
-
+      
       # return df
       df
     }) %>%
@@ -287,8 +286,8 @@ data_visualizationServer <- function(id) {
     output$example_graph <- renderPlot({
       well_percentages()
     },
-    width = function() {get_dim(dims_plot(), "width", "72")},
-    height = function() {get_dim(dims_plot(), "height", "72")},
+    width = function() {as.numeric(get_dim(dims_plot(), "width", "72"))},
+    height = function() {as.numeric(get_dim(dims_plot(), "height", "72"))},
     res = 72)
     # %>% # COULDN'T CACHE
     # Caching forces to use sizePolicy() to controls plot dims, and it does not correctly update plot dims when reactive vars cahnge
