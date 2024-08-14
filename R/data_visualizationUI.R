@@ -267,6 +267,11 @@ data_visualizationUI <- function(id) {
                  plotOutput(NS(id, "well_percentages")),
                  downloadButton(NS(id, "download_well_percentages"), label = "Download graph above"),
                  br(), hr(),
+                 
+                 # nuclear area distribution
+                 plotOutput(NS(id, "nuclear_area_distribution")),
+                 downloadButton(NS(id, "download_nuclear_area_distribution"), label = "Download graph above"),
+                 br(), hr(),
           ),
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",

@@ -185,6 +185,22 @@ data_visualizationServer <- function(id) {
       bindCache(input$single_cell_data_df$datapath,
                 input$remove_background)
     
+    # single cell df
+    single_cell_df <- reactive({
+      
+      # remove background cells/wells
+      df <- if (input$remove_background == TRUE) {
+        dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
+      } else {
+        single_cell_data_df()
+      }
+      
+      # return df
+      df
+    }) %>%
+      bindCache(input$single_cell_data_df$datapath,
+                input$remove_background)
+    
     # analysis report df
     df <- reactive({
       
@@ -370,6 +386,10 @@ data_visualizationServer <- function(id) {
       well_percentages <- well_percentages()
       
       # nuclear area distribution
+      nuclear_area_distribution <- plot_morphological_feature_distribution(single_cell_df(),
+                                                          morphological_feature = input$morph_data_input_feature,
+                                                          additional_variables = additional_variables(),
+                                                          scale_fill_brewer = scale_fill_brewer_conditions())
       
       # median nuclear area
       
@@ -408,7 +428,8 @@ data_visualizationServer <- function(id) {
       list_plots <- list(single_cell_staining = single_cell_staining,
                          percentages = percentages,
                          median_staining = median_staining,
-                         well_percentages = well_percentages)
+                         well_percentages = well_percentages,
+                         nuclear_area_distribution = nuclear_area_distribution)
       
       if (input$generate_comparison_graphs == TRUE) {
         list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
@@ -478,6 +499,14 @@ data_visualizationServer <- function(id) {
         print(graphs()$well_percentages)
         grDevices::dev.off()
         
+        # nuclear area
+        grDevices::png(file.path(temp_directory, "nuclear_area_distribution.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$nuclear_area_distribution)
+        grDevices::dev.off()
+        
         # Comparison plots
         if (input$generate_comparison_graphs == TRUE) {
           
@@ -511,6 +540,29 @@ data_visualizationServer <- function(id) {
     )
     
     # Render and download buttons for all graphs -----------------------------------------------------------
+    
+    # nuclear_area_distribution
+    output$nuclear_area_distribution <- renderPlot({ # plot
+      graphs()$nuclear_area_distribution
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_nuclear_area_distribution <- downloadHandler( # download button
+      filename = function() {
+        paste0("nuclear_area_distribution", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$nuclear_area_distribution)
+        grDevices::dev.off()
+      }
+    )
     
     # single cell stains
     output$single_cell_staining <- renderPlot({ # plot
