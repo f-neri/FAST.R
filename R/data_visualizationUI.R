@@ -272,6 +272,11 @@ data_visualizationUI <- function(id) {
                  plotOutput(NS(id, "nuclear_area_distribution")),
                  downloadButton(NS(id, "download_nuclear_area_distribution"), label = "Download graph above"),
                  br(), hr(),
+                 
+                 # median_nuclear_area
+                 plotOutput(NS(id, "median_nuclear_area")),
+                 downloadButton(NS(id, "download_median_nuclear_area"), label = "Download graph above"),
+                 br(), hr(),
           ),
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",

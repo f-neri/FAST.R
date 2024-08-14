@@ -392,6 +392,10 @@ data_visualizationServer <- function(id) {
                                                           scale_fill_brewer = scale_fill_brewer_conditions())
       
       # median nuclear area
+      median_nuclear_area <- plot_median_nuclear_area(df(),
+                                                      morphological_feature = input$morph_data_input_feature,
+                                                      additional_variables = additional_variables(),
+                                                      scale_fill_brewer = scale_fill_brewer_conditions())
       
       # fold change median SABGal
       
@@ -429,7 +433,8 @@ data_visualizationServer <- function(id) {
                          percentages = percentages,
                          median_staining = median_staining,
                          well_percentages = well_percentages,
-                         nuclear_area_distribution = nuclear_area_distribution)
+                         nuclear_area_distribution = nuclear_area_distribution,
+                         median_nuclear_area = median_nuclear_area)
       
       if (input$generate_comparison_graphs == TRUE) {
         list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
@@ -507,6 +512,14 @@ data_visualizationServer <- function(id) {
         print(graphs()$nuclear_area_distribution)
         grDevices::dev.off()
         
+        # median nuclear area
+        grDevices::png(file.path(temp_directory, "median_nuclear_area.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_nuclear_area)
+        grDevices::dev.off()
+        
         # Comparison plots
         if (input$generate_comparison_graphs == TRUE) {
           
@@ -540,6 +553,29 @@ data_visualizationServer <- function(id) {
     )
     
     # Render and download buttons for all graphs -----------------------------------------------------------
+    
+    # median_nuclear_area
+    output$median_nuclear_area <- renderPlot({ # plot
+      graphs()$median_nuclear_area
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_median_nuclear_area <- downloadHandler( # download button
+      filename = function() {
+        paste0("median_nuclear_area", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_nuclear_area)
+        grDevices::dev.off()
+      }
+    )
     
     # nuclear_area_distribution
     output$nuclear_area_distribution <- renderPlot({ # plot
