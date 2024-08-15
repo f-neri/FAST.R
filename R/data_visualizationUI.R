@@ -277,6 +277,12 @@ data_visualizationUI <- function(id) {
                  plotOutput(NS(id, "median_nuclear_area")),
                  downloadButton(NS(id, "download_median_nuclear_area"), label = "Download graph above"),
                  br(), hr(),
+                 
+                 # fold_change_median
+                 plotOutput(NS(id, "fold_change_median_morphological")),
+                 downloadButton(NS(id, "download_fold_change_median_morphological"), label = "Download graph above"),
+                 br(), hr(),
+                 
           ),
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",
