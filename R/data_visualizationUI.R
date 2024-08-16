@@ -278,9 +278,14 @@ data_visualizationUI <- function(id) {
                  downloadButton(NS(id, "download_median_nuclear_area"), label = "Download graph above"),
                  br(), hr(),
                  
-                 # fold_change_median
+                 # fold_change_median_morph
                  plotOutput(NS(id, "fold_change_median_morphological")),
                  downloadButton(NS(id, "download_fold_change_median_morphological"), label = "Download graph above"),
+                 br(), hr(),
+                 
+                 # fold_change_median_stains
+                 plotOutput(NS(id, "fold_change_median_stains")),
+                 downloadButton(NS(id, "download_fold_change_median_stains"), label = "Download graph above"),
                  br(), hr(),
                  
           ),

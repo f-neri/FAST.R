@@ -32,14 +32,12 @@ plot_median_staining <- function(data,
     y_feature_plot =  paste0(y_feature, "_median")
     y_feature_threshold = paste0(y_feature, "_threshold_average_log10")
     
-    plot_well_percentages_plots <- ggplot(data = data,
-           aes(x = log10(.data[[x_feature_plot]]),
-               y = log10(.data[[y_feature_plot]]),
-               fill = .data$Condition)
-    ) +
-      geom_point(size = 3,
-                 shape = 21,
-                 color = "black") +
+    plot_well_percentages_plots <- ggplot(data,
+           aes(.data[[x_feature_plot]], .data[[y_feature_plot]])) +
+      geom_point(
+        aes(color = .data$Condition),
+        alpha = 1/8
+      ) +
       geom_vline(data = data_thresholds, aes(xintercept = .data[[x_feature_threshold]])) +
       geom_hline(data = data_thresholds, aes(yintercept = .data[[y_feature_threshold]])) +
       {if (length(additional_variables) == 1) facet_grid(cols = vars(!!dplyr::sym(additional_variables[1]))) } +

@@ -397,12 +397,19 @@ data_visualizationServer <- function(id) {
                                                       additional_variables = additional_variables(),
                                                       scale_fill_brewer = scale_fill_brewer_conditions())
       
-      # fold change median for all features
+      # fold change median for morpohlogical features
       fold_change_median_morphological <- plot_median_fold_change_morphological(df(),
                                                                   morphological_feature = input$morph_data_input_feature,
                                                                   additional_variables = additional_variables(),
                                                                   scale_fill_brewer = scale_fill_brewer_conditions())
       
+      # fold change median for features
+      fold_change_median_stains <- plot_median_fold_change_stains(df(),
+                                                                  input_features = input_features(),
+                                                                  additional_variables = additional_variables(),
+                                                                  scale_fill_brewer = scale_fill_brewer_conditions(),
+                                                                  scale_color_brewer = scale_color_brewer_conditions())
+    
       # 3D plots  -----------------------------------------------------------
       
       # SABGal+ and EdU+ percentages plus median Nuclear Area
@@ -435,7 +442,8 @@ data_visualizationServer <- function(id) {
                          well_percentages = well_percentages,
                          nuclear_area_distribution = nuclear_area_distribution,
                          median_nuclear_area = median_nuclear_area,
-                         fold_change_median_morphological = fold_change_median_morphological)
+                         fold_change_median_morphological = fold_change_median_morphological,
+                         fold_change_median_stains = fold_change_median_stains)
       
       if (input$generate_comparison_graphs == TRUE) {
         list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
@@ -529,6 +537,14 @@ data_visualizationServer <- function(id) {
         print(graphs()$fold_change_median_morphological)
         grDevices::dev.off()
         
+        # fold_change_median_stains
+        grDevices::png(file.path(temp_directory, "fold_change_median_stains.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_stains)
+        grDevices::dev.off()
+        
         # Comparison plots
         if (input$generate_comparison_graphs == TRUE) {
           
@@ -562,6 +578,29 @@ data_visualizationServer <- function(id) {
     )
     
     # Render and download buttons for all graphs -----------------------------------------------------------
+    
+    # fold_change_median_stains
+    output$fold_change_median_stains <- renderPlot({ # plot
+      graphs()$fold_change_median_stains
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_fold_change_median_stains <- downloadHandler( # download button
+      filename = function() {
+        paste0("fold_change_median_stains", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_stains)
+        grDevices::dev.off()
+      }
+    )
     
     # fold_change_median_morphological
     output$fold_change_median_morphological <- renderPlot({ # plot

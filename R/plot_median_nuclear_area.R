@@ -21,7 +21,9 @@ plot_median_nuclear_area <- function(data,
   } else{
     plots <- lapply(morphological_feature, function(feature) {
       
-      plot_well_percentages_plots <- ggplot2::ggplot(data, ggplot2::aes(x = .data[[feature]])) +
+      feature_plot <- paste0(feature, "_median")
+      
+      plot_well_percentages_plots <- ggplot2::ggplot(data, ggplot2::aes(x = .data[[feature_plot]])) +
         ggplot2::geom_histogram(
           ggplot2::aes(fill = .data$Condition),
           bins = 30, color = "black", alpha = 0.7) +
