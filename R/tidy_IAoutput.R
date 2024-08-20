@@ -1,10 +1,12 @@
 # adjust IA output excel file to have tidy format
+
 tidy_IAoutput <- function(data,
-                          Nuclear_Area_channel_number = 0,
-                          DAPI_channel_number = 1,
-                          EdU_channel_number = 2,
-                          SABGal_channel_number = 3) {
-  
+                          feature_dictionary = list(
+                            Nuclear_Area_channel_number = 0,
+                            DAPI_channel_number = 1,
+                            EdU_channel_number = 2,
+                            SABGal_channel_number = 3
+                          )) {
   IAoutput <- data
   
   # change Plot_Name/Name column name to well
@@ -32,15 +34,12 @@ tidy_IAoutput <- function(data,
                                      values_to = "Signal_Intensity")
   
   # adjust Channel column name and values
-  
+  feature_list <- names(feature_dictionary)
   tidy_data1 <- tidy_data1 %>%
     dplyr::rename(Measured_Parameter = .data$Channel) %>%
     dplyr::mutate(Measured_Parameter = dplyr::case_when(
-      Measured_Parameter == 0 ~ "Nuclear_Area",
-      Measured_Parameter == 1 ~ "DAPI",
-      Measured_Parameter == 2 ~ "EdU",
-      Measured_Parameter == 3 ~ "SABGal",
-      .default = NA)
+      Measured_Parameter %in% unlist(feature_dictionary) ~ names(feature_dictionary)[match(Measured_Parameter, unlist(feature_dictionary))],
+      .default = NA_character_)
     )
   
   # adjust well column values - extract first letter followed by 2 digits

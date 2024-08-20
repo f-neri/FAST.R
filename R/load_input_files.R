@@ -1,4 +1,11 @@
+################################################################################
+# 07/08 Modified load_input_files.R Script
+#
+# Load and check IA Output file and meta data - need to update UI
+################################################################################
+
 load_input_files <- function(Image_Analyst_output, plate_metadata) {
+  
   check_file_numbers_match(Image_Analyst_output$name,
                            plate_metadata$name)
   
@@ -92,9 +99,9 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     validate(
       paste0(
         "ERROR: Plate metadata files should all have the same variables
-          
+
           Ensure that all metadata files contain the same plate template names/variables.
-          
+
           Variables in first metadata file (", Input_files$metadata_name[1], "): ", paste(c(sort(names(Input_files$metadata_df[[1]]))), collapse=", "), "
           Mismatched metadata files: ", paste(c(Input_files$metadata_name[mismatched_indices]), collapse=", ")
       )
@@ -111,6 +118,7 @@ load_input_files <- function(Image_Analyst_output, plate_metadata) {
     
     # check that each IAoutput file and corresponding plate_metadata file have same # of wells/labels
     n_channels <- Input_files$IAoutput_df[[i]]$Channel %>% unique() %>% length()
+    
     number_wells_IAoutput <- nrow( Input_files$IAoutput_df[[i]] ) / n_channels
     
     number_wells_metadata <- Input_files$metadata_df[[i]]$well %>% length()

@@ -33,6 +33,24 @@ data_visualizationUI <- function(id) {
                br(),
                fileInput(NS(id, "single_cell_data_df"), label = "Single Cell Data", multiple = FALSE, accept = ".csv"),
                fileInput(NS(id, "analysis_report_df"), label = "Analysis Report", multiple = FALSE, accept = ".csv"),
+               selectizeInput(
+                 inputId = NS(id, "morph_data_input_feature"),
+                 label = "Morphological Data Features",
+                 choices = c("Nuclear_Area"),  # Add all possible stain features here
+                 selected = c("Nuclear_Area"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select morphological features in the dataset',
+                                plugins = list('remove_button', 'drag_drop'))
+               ),
+               selectizeInput(
+                 inputId = NS(id, "data_input_feature"),
+                 label = "Stains",
+                 choices = c("DAPI", "EdU", "SABGal"),  # Add all possible stain features here
+                 selected = c("DAPI", "EdU", "SABGal"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select features in the dataset',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
         ),
         column(5, offset = 0,
                br(), br(), br(), br(), br(),
@@ -42,7 +60,8 @@ data_visualizationUI <- function(id) {
         column(12, offset = 0, align = "center",
                actionButton(NS(id, "next_button"), label = "Next"),
                br(), br())
-      )
+      ),
+      
     ),
     
     # Upload error messages ---------------------------------------------------
@@ -230,8 +249,8 @@ data_visualizationUI <- function(id) {
           column(12, offset = 0, align = "center",
                  br(),
                  # single cell SABGal EdU staining
-                 plotOutput(NS(id, "single_cell_SABGal_EdU_staining")),
-                 downloadButton(NS(id, "download_single_cell_SABGal_EdU_staining"), label = "Download graph above"),
+                 plotOutput(NS(id, "single_cell_staining")),
+                 downloadButton(NS(id, "download_single_cell_staining"), label = "Download graph above"),
                  br(), hr(),
                  
                  # percentages
@@ -240,20 +259,41 @@ data_visualizationUI <- function(id) {
                  br(), hr(),
                  
                  # median SABGal EdU staining
-                 plotOutput(NS(id, "median_SABGal_EdU_staining")),
-                 downloadButton(NS(id, "download_median_SABGal_EdU_staining"), label = "Download graph above"),
+                 plotOutput(NS(id, "median_staining")),
+                 downloadButton(NS(id, "download_median_staining"), label = "Download graph above"),
                  br(), hr(),
                  
                  # well percentages
                  plotOutput(NS(id, "well_percentages")),
                  downloadButton(NS(id, "download_well_percentages"), label = "Download graph above"),
                  br(), hr(),
+                 
+                 # nuclear area distribution
+                 plotOutput(NS(id, "nuclear_area_distribution")),
+                 downloadButton(NS(id, "download_nuclear_area_distribution"), label = "Download graph above"),
+                 br(), hr(),
+                 
+                 # median_nuclear_area
+                 plotOutput(NS(id, "median_nuclear_area")),
+                 downloadButton(NS(id, "download_median_nuclear_area"), label = "Download graph above"),
+                 br(), hr(),
+                 
+                 # fold_change_median_morph
+                 plotOutput(NS(id, "fold_change_median_morphological")),
+                 downloadButton(NS(id, "download_fold_change_median_morphological"), label = "Download graph above"),
+                 br(), hr(),
+                 
+                 # fold_change_median_stains
+                 plotOutput(NS(id, "fold_change_median_stains")),
+                 downloadButton(NS(id, "download_fold_change_median_stains"), label = "Download graph above"),
+                 br(), hr(),
+                 
           ),
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",
                      # median SABGal EdU staining Comparison
-                     plotOutput(NS(id, "median_SABGal_EdU_staining_comparison")),
-                     downloadButton(NS(id, "download_median_SABGal_EdU_staining_comparison"), label = "Download graph above"),
+                     plotOutput(NS(id, "median_staining_comparison")),
+                     downloadButton(NS(id, "download_median_staining_comparison"), label = "Download graph above"),
                      br(), hr(),
                      
                      # well percentages comparison

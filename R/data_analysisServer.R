@@ -60,12 +60,30 @@ data_analysisServer <- function(id) {
       contentType = "application/zip"
     )
     
+    # ML Features -----------------------------------------------------------
+    observeEvent(input$generate_dropdown, {
+      selected_features <- c(input$morphological_feature, input$input_feature)
+      
+      output$dynamic_dropdown_ui <- renderUI({
+        selectizeInput(
+          inputId = NS(id, "input_ML_features"),
+          label = "ML Features",
+          choices = selected_features,
+          multiple = TRUE,
+          options = list(placeholder = 'Select ML features',
+                         plugins = list('remove_button', 'drag_drop'))
+        )
+      })
+    })
+      
     # DATA ANALYSIS -----------------------------------------------------------
     
     # Load files --------------------------------------------------------------
     Input_files <- reactive({
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
       
-      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold)
+      req(input$Image_Analyst_output, input$plate_metadata, input$background_threshold, input$morphological_feature, input$input_feature)
       
       # Update UI ---------------------------------------------------------------
       
@@ -85,7 +103,10 @@ data_analysisServer <- function(id) {
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$input_ML_features,
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # Generate single_cell_data table -----------------------------------------------------------
@@ -98,7 +119,10 @@ data_analysisServer <- function(id) {
       
       Input_files <- Input_files()
       
-      single_cell_df <- generate_single_cell_df(Input_files)
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
+      
+      single_cell_df <- generate_single_cell_df(Input_files, input$morphological_feature, input$input_feature, input$input_ML_features)
       
       # return single cell df
       single_cell_df
@@ -106,11 +130,17 @@ data_analysisServer <- function(id) {
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$input_ML_features,
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # Generate analysis_report table ------------------------------------------
     analysis_report <- reactive({
+      
+      # Optional input handling: input$input_ML_features
+      ml_features <- if (is.null(input$input_ML_features)) character(0) else input$input_ML_features
       
       # disable button_analysis while computing
       shinyjs::disable("button_analysis")
@@ -119,14 +149,21 @@ data_analysisServer <- function(id) {
       on.exit({ enable_button_analysis() })
       
       # generate analysis report
-      analysis_report <- analyze_single_cell_data(single_cell_data(), input$background_threshold)
+      analysis_report <- analyze_single_cell_data(
+        single_cell_data(),
+        input$background_threshold,
+        input$morphological_feature,
+        input$input_feature
+      )
       
       # return analysis report df
       analysis_report
     }) %>%
       bindCache(input$Image_Analyst_output$datapath,
                 input$plate_metadata$datapath,
-                input$background_threshold) %>%
+                input$background_threshold,
+                input$morphological_feature,
+                input$feature_list) %>%
       bindEvent(input$button_analysis)
     
     # OUTPUT ------------------------------------------------------------------
@@ -207,10 +244,13 @@ data_analysisServer <- function(id) {
       additional_variables <- additional_variables[-c(pos_cell_counts:length(additional_variables))] # remove all vars after cell_counts, leaving only possible additional vars
       
       # create vector with cols to visualize
+      all_feature_list <- c(input$morphological_feature, input$input_feature)
+      median_cols <- paste0(all_feature_list, "_median")
+      percentage_pos_cols <- paste0("percentage_", all_feature_list, "_positive")
       cols_to_vis <- c("plate", "well", "Condition", additional_variables,
-                       "cell_counts", "Nuclear_Area_median", "EdU_median", "SABGal_median",
-                       "percentage_EdU_positive", "percentage_SABGal_positive"
-                       )
+                       "cell_counts", median_cols,
+                       percentage_pos_cols
+      )
       
       # get indices of cols to NOT visualize
       indices <- which(!(names(analysis_report()) %in% cols_to_vis)) %>% -1 # indices in columnDefs calls start from 0, not 1

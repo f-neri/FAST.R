@@ -106,6 +106,74 @@ data_analysisUI <- function(id) {
         )
       ),
       
+      # Morphological feature input
+      fluidRow(
+        # Input
+        column(3, offset = 3, align = "center",
+               selectizeInput(
+                 inputId = NS(id, "morphological_feature"),
+                 label = "Morphological Feature",
+                 choices = c("Nuclear_Area"),
+                 selected = c("Nuclear_Area"),
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select morphological feature',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
+        ),
+        # Instructions
+        column(5, offset = 0,
+               br(),
+               p("Enter the ", strong("Morphological Feature"), " for analysis."),
+               br()
+        )
+      ),
+      
+      fluidRow(
+        column(3, offset = 3, align = "center",
+               selectizeInput(
+                 inputId = NS(id, "input_feature"),
+                 label = "Stain Features",
+                 choices = c("DAPI", "EdU", "SABGal"),  # Add all possible stain features here
+                 selected = c("DAPI", "EdU", "SABGal"),  # Initial selected options
+                 multiple = TRUE,
+                 options = list(placeholder = 'Select stain features',
+                                plugins = list('remove_button', 'drag_drop'))
+               )
+        ),
+        column(5, offset = 0,
+               br(),
+               p("Enter the ", strong("Stain Features"), " in the order from ImageAnalyst for analysis."),
+               br(),
+               # manually added line brakes
+               br(),
+               br(),
+               br()
+        )
+      ),
+      
+      # Create button for ML Feature selection
+      fluidRow(
+        column(3, offset = 3, align = "center",
+               actionButton(NS(id, "generate_dropdown"), "Show ML Feature Selection Dropdown")
+        ),
+        column(5, offset = 0,
+               br(),
+               p("Click the button to pick the features for ML training."),
+               br()
+        )
+      ),
+      
+      fluidRow(
+        # Placeholder for the dynamic dropdown
+        column(3, offset = 3, align = "center",
+               uiOutput(NS(id, "dynamic_dropdown_ui"))
+        ),
+        # manually added line brakes
+        br(),
+        br(),
+        br()
+      ),
+      
       # run analysis button
       fluidRow(
         column(12, align = "center",

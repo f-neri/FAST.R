@@ -1,11 +1,23 @@
+################################################################################
+# 07/11 Modified analyze_single_cell_data.R Script
+#
+# Dependent scripts: calculate_summary_stats.R, generate_permuatations.R,
+# counts_percentages.R, rearrange_df_columns.R
+#
+# Generate Analysis Report for Data Analysis Server
+################################################################################
+
 . <- NULL # prevents R CMD note
 
-analyze_single_cell_data <- function(df_single_cell_data, background_threshold) {
+analyze_single_cell_data <- function(df_single_cell_data, background_threshold,
+                                     input_morphological_feature_list,
+                                     input_feature_list) {
   
   # Additional variables check and handler ----------------------------------
+  feature_list <- c(input_morphological_feature_list, input_feature_list)
   
   # Define the expected variables including 'plate'
-  expected_variables <- c("plate", "well", "cell_ID", "Condition", "Nuclear_Area", "DAPI", "EdU", "SABGal")
+  expected_variables <- c("plate", "well", "cell_ID", "Condition", feature_list)
   
   # Identify additional variables
   additional_vars <- setdiff(names(df_single_cell_data), expected_variables)
@@ -50,10 +62,9 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   
   thresholds_df <- df_single_cell_data_background %>%
     dplyr::group_by(!!!dplyr::syms(grouping)) %>%
-    dplyr::summarise(
-      EdU_threshold = stats::quantile(.data$EdU, background_threshold, na.rm = TRUE),
-      SABGal_threshold = stats::quantile(.data$SABGal, background_threshold, na.rm = TRUE)
-    )
+    dplyr::summarise(across(all_of(feature_list),
+                            ~ stats::quantile(.x, background_threshold, na.rm = TRUE),
+                            .names = "{.col}_threshold"))
   
   # mirror thresholds values for non background Conditions
   thresholds_df_mirror <- thresholds_df
@@ -64,49 +75,52 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
   
   df_single_cell_data <- dplyr::left_join(df_single_cell_data, thresholds_df)
   
-  # }
-  
   # Generate summary table --------------------------------------------------
   
-  # grouping arguments for summarise()
+  # Grouping arguments for summarise()
   single_cell_grouping <- c("well", "Condition", additional_variables)
   
-  # Generate summary_df
-  summary_df <- df_single_cell_data %>%
+  # Get cell_counts
+  cell_counts_df <- df_single_cell_data %>%
     dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
-    dplyr::summarise(
-      cell_counts = dplyr::n(),
-      Nuclear_Area_min = min(.data$Nuclear_Area, na.rm = TRUE),
-      Nuclear_Area_25th = stats::quantile(.data$Nuclear_Area, 0.25, na.rm = TRUE),
-      Nuclear_Area_median = stats::median(.data$Nuclear_Area, na.rm = TRUE),
-      Nuclear_Area_75th = stats::quantile(.data$Nuclear_Area, 0.75, na.rm = TRUE),
-      Nuclear_Area_max = max(.data$Nuclear_Area, na.rm = TRUE),
-      EdU_min = min(.data$EdU, na.rm = TRUE),
-      EdU_25th = stats::quantile(.data$EdU, 0.25, na.rm = TRUE),
-      EdU_median = stats::median(.data$EdU, na.rm = TRUE),
-      EdU_75th = stats::quantile(.data$EdU, 0.75, na.rm = TRUE),
-      EdU_max = max(.data$EdU, na.rm = TRUE),
-      SABGal_min = min(.data$SABGal, na.rm = TRUE),
-      SABGal_25th = stats::quantile(.data$SABGal, 0.25, na.rm = TRUE),
-      SABGal_median = stats::median(.data$SABGal, na.rm = TRUE),
-      SABGal_75th = stats::quantile(.data$SABGal, 0.75, na.rm = TRUE),
-      SABGal_max = max(.data$SABGal, na.rm = TRUE),
-      EdU_threshold = mean(.data$EdU_threshold),
-      SABGal_threshold = mean(.data$SABGal_threshold, na.rm = TRUE),
-      counts_EdU_positive = sum(.data$EdU > .data$EdU_threshold, na.rm = TRUE),
-      counts_SABGal_positive = sum(.data$SABGal > .data$SABGal_threshold, na.rm = TRUE),
-      counts_EdU_negative_SABGal_negative = sum(.data$EdU <= .data$EdU_threshold & .data$SABGal <= .data$SABGal_threshold, na.rm = TRUE),
-      counts_EdU_negative_SABGal_positive = sum(.data$EdU <= .data$EdU_threshold & .data$SABGal > .data$SABGal_threshold, na.rm = TRUE),
-      counts_EdU_positive_SABGal_negative = sum(.data$EdU > .data$EdU_threshold & .data$SABGal <= .data$SABGal_threshold, na.rm = TRUE),
-      counts_EdU_positive_SABGal_positive = sum(.data$EdU > .data$EdU_threshold & .data$SABGal > .data$SABGal_threshold, na.rm = TRUE),
-      percentage_EdU_positive = .data$counts_EdU_positive / .data$cell_counts,
-      percentage_SABGal_positive = .data$counts_SABGal_positive / .data$cell_counts,
-      percentage_EdU_negative_SABGal_negative = .data$counts_EdU_negative_SABGal_negative / .data$cell_counts,
-      percentage_EdU_negative_SABGal_positive = .data$counts_EdU_negative_SABGal_positive / .data$cell_counts,
-      percentage_EdU_positive_SABGal_negative = .data$counts_EdU_positive_SABGal_negative / .data$cell_counts,
-      percentage_EdU_positive_SABGal_positive = .data$counts_EdU_positive_SABGal_positive / .data$cell_counts,
-      .groups = 'drop'
-    )
+    dplyr::summarise(cell_counts = dplyr::n(), .groups = 'drop')
+
+  # Fill summary data frame
+  index <- 1
+  summary_list <- purrr::map(feature_list, function(feature_name) {
+    # First pass will keep the grouping features
+    keep_all <- index == 1
+    index <<- index + 1 # increment up
+    
+    df_single_cell_data %>%
+      dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
+      calculate_summary_stats(single_cell_grouping, feature_name, keep_all_cols = keep_all)
+  })
+  
+  # Summary Data Frame
+  summary_df_list <- as.data.frame(summary_list)
+  
+  # Take off any cols with colname with cell_counts
+  summary_df_list <- summary_df_list %>% 
+    dplyr::select(-contains("cell_counts"))
+  
+  summary_df_list <- summary_df_list %>%
+    dplyr::left_join(cell_counts_df, by = single_cell_grouping)
+  
+  ### Add Counts and percentages columns for pairwise features
+  # Get feature pairs
+  feature_pairs <- combn(input_feature_list, 2, simplify = FALSE)
+  pos_neg_pairs <- unlist(lapply(feature_pairs, generate_permutations))
+  
+  summary_df_counts_percentages <- df_single_cell_data %>%
+    dplyr::group_by(!!!dplyr::syms(single_cell_grouping)) %>%
+    counts_percentages(pos_neg_pairs)
+  
+  summary_df_counts_percentages <- summary_df_counts_percentages %>% 
+    percentage_calculation(pos_neg_pairs, summary_df_list$cell_counts)
+  
+  # Full Summary Data Frame
+  summary_df <- dplyr::left_join(summary_df_list, summary_df_counts_percentages, by = single_cell_grouping)
   
   # add ML_Training to summary
   if(length(additional_vars) > length(additional_vars_noMLTraining)) {
@@ -116,106 +130,127 @@ analyze_single_cell_data <- function(df_single_cell_data, background_threshold) 
       dplyr::summarize(
         ML_Training = unique(.data$ML_Training),
         cell_counts = dplyr::n(),
-        `ML_Prediction_% +` = sum(.data$ML_Prediction == "+")/.data$cell_counts,
-        `ML_Prediction_% -` = sum(.data$ML_Prediction == "-")/.data$cell_counts
+        ML_Prediction_percentage_positive = sum(.data$ML_Prediction == "+")/.data$cell_counts,
+        ML_Prediction_percentage_negative = sum(.data$ML_Prediction == "-")/.data$cell_counts
       ) %>%
       dplyr::ungroup()
     
     summary_df <- summary_df %>% dplyr::left_join(df_ML_Training) %>%
       dplyr::select(.data$well, .data$Condition,
-                    .data$ML_Training, .data$`ML_Prediction_% +`, .data$`ML_Prediction_% -`,
+                    .data$ML_Training, .data$ML_Prediction_percentage_positive, .data$ML_Prediction_percentage_negative,
                     dplyr::everything()
-                    )
+      )
   }
   
   # Add fold change for median values ---------------------------------------
   
-  # generate mean median values
-  reference_signal <- summary_df[!grepl("_background$", summary_df$Condition), ] %>% # remove background wells
+  # Generate mean of median values
+  median_cols <- paste0(feature_list, "_median")
+  reference_signal <- summary_df[!grepl("_background$", summary_df$Condition), ] %>%
     dplyr::group_by(!!!dplyr::syms(c("Condition", additional_variables))) %>%
     dplyr::summarise(
-      Nuclear_Area_median_reference = mean(.data$Nuclear_Area_median),
-      EdU_median_reference = mean(.data$EdU_median),
-      SABGal_median_reference = mean(.data$SABGal_median),
+      across(
+        .cols = all_of(median_cols),
+        .fns = list(median_reference = ~ mean(.x, na.rm = TRUE)),
+        .names = "{.col}_reference"
+      ),
       .groups = "drop"
     )
   
-  # identify lowest non-background mean value to use as reference
+  # Identify lowest non-background mean value to use as reference
   
-  ## calculate min value
+  ## Calculate min value
+  median_ref_cols <- paste0(median_cols, "_reference")
+  
   if (length(additional_variables) > 0) {
     reference_signal_min <- reference_signal %>%
       dplyr::group_by(!!!dplyr::syms(additional_variables)) %>%
       dplyr::summarise(
-        Nuclear_Area_median_reference = min(.data$Nuclear_Area_median_reference),
-        EdU_median_reference = min(.data$EdU_median_reference),
-        SABGal_median_reference = min(.data$SABGal_median_reference),
+        across(
+          .cols = all_of(median_ref_cols),
+          .fns = list(min_reference = ~min(.x, na.rm = TRUE)),
+          .names = "{.col}"
+        ),
         .groups = "drop"
       )
   } else {
     reference_signal_min <- reference_signal %>%
       dplyr::mutate(
-        Nuclear_Area_median_reference = min(.data$Nuclear_Area_median_reference),
-        EdU_median_reference = min(.data$EdU_median_reference),
-        SABGal_median_reference = min(.data$SABGal_median_reference)
-      )
-  }
+        across(
+          .cols = all_of(median_ref_cols),
+          .fns = list(min_reference = ~min(.x, na.rm = TRUE)),
+          .names = "{.col}"
+        )
+      )}
   
-  ## set min value as reference for all Conditions
+  ## Set min value as reference for all Conditions
   if (length(additional_variables) > 0) {
     reference_signal_min <- reference_signal %>%
-      dplyr::select(!dplyr::all_of(c("Nuclear_Area_median_reference", "EdU_median_reference", "SABGal_median_reference"))) %>%
+      dplyr::select(!dplyr::all_of(median_ref_cols)) %>%
       dplyr::left_join(reference_signal_min)
   }
   
-  ## set min value as reference for all background Conditions
+  ## Set min value as reference for all background Conditions
   reference_signal_min_background <- reference_signal_min %>%
     dplyr::mutate(Condition = paste0(.data$Condition, "_background"))
   
   reference_signal_min <- dplyr::bind_rows(reference_signal_min, reference_signal_min_background)
   
-  # calculate fold change compared to reference
+  # Calculate fold change compared to reference
+  median_fold_change_cols <- paste0(median_cols, "_fold_change")
   summary_df <- summary_df %>%
-    dplyr::left_join(reference_signal_min) %>%
-    dplyr::mutate(
-      Nuclear_Area_median_fold_change = .data$Nuclear_Area_median / .data$Nuclear_Area_median_reference,
-      EdU_median_fold_change = .data$EdU_median / .data$EdU_median_reference,
-      SABGal_median_fold_change = .data$SABGal_median / .data$SABGal_median_reference
-    ) %>%
-    dplyr::select(!dplyr::all_of(c("Nuclear_Area_median_reference", "EdU_median_reference", "SABGal_median_reference")))
+    dplyr::left_join(reference_signal_min)
+  
+  fold_change_cols <- list()
+  for (col in median_cols) {
+    # Calculate fold change
+    fold_change <- summary_df[[col]] / summary_df[[paste0(col, "_reference")]]
+    fold_change_cols[[paste0(col, "_fold_change")]] <- fold_change
+  }
+  # Convert to df
+  fold_change_df <- as.data.frame(fold_change_cols)
+  
+  # Add fold change df to summary df
+  summary_df <- cbind(summary_df, fold_change_df)
+  summary_df <- summary_df %>%
+    dplyr::select(-dplyr::all_of(median_ref_cols))
   
   # Re-add plate column -----------------------------------------------------
   
-  # create small df with plate column
+  # Create small df with plate column
   plate_df <- df_single_cell_data %>%
     dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables)) %>%
     unique()
   
-  # join plate_df with summary df
+  # Join plate_df with summary df
   summary_df <- dplyr::left_join(summary_df, plate_df) %>%
     dplyr::select(.data$plate, dplyr::everything()) # rearrange plate to be 1st column
   
-  # reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
+  # Reduce decimal digits to 2 for all <dbl> columns ----------------------------------------------
   
-  # identify percentage columns
+  # Identify percentage columns
   is_percentage_column <- grepl("percentage|%", names(summary_df))
   
-  # multiply proportion values by 100
+  # Multiply proportion values by 100
   summary_df[ , is_percentage_column] <- summary_df[ , is_percentage_column] * 100
   
-  # identify percentage a double columns
+  # Identify percentage a double columns
   is_double_column <- sapply(summary_df, is.double)
   
   # Format values to 2 decimal digits
   summary_df[, is_double_column] <- lapply(summary_df[, is_double_column], function(x) format(x, digits = 2, nsmall = 2))
   
   # Adjust column order -----------------------------------------------------
-  summary_df %>%
+  
+  anchor_point <- paste0(feature_list[length(feature_list)], "_max")
+  
+  summary_df <- summary_df %>%
     dplyr::select(.data$plate, .data$well, .data$Condition, dplyr::all_of(additional_variables), dplyr::everything()) %>%
     rearrange_df_columns(.,
-                       cols_to_move = c("Nuclear_Area_median_fold_change", "EdU_median_fold_change", "SABGal_median_fold_change"),
-                       col_anchor =  "SABGal_max")
-    
+                         cols_to_move = median_fold_change_cols,
+                         col_anchor =  anchor_point)
+  summary_df <- summary_df %>% 
+    dplyr::select("plate", single_cell_grouping, "cell_counts", everything())
   
   # Rename additional_variables with original names -------------------------
   

@@ -13,7 +13,7 @@ data_visualizationServer <- function(id) {
       bindCache(input$single_cell_data_df$datapath) %>%
       bindEvent(input$single_cell_data_df)
     
-    # check sinlge-cell data format
+    # check single-cell data format
     ## TO ADD
     
     # read analysis report data
@@ -60,11 +60,18 @@ data_visualizationServer <- function(id) {
       bindEvent(input$analysis_report_df$datapath,
                 input$single_cell_data_df$datapath)
     
+    # Get the input features --------------------------------------------------
+    
+    input_features <- reactive({
+      input_features <- c(input$morph_data_input_feature, input$data_input_feature)
+      input_features
+    })
+    
     # Identify additional variables -------------------------------------------
     
     additional_variables <- reactive({
       cell_counts_column <- grep("cell_counts", names(analysis_report_df())) # get column position of cell_counts
-      
+            
       add_vars <- names(analysis_report_df())[-c(cell_counts_column:length(names(analysis_report_df())))] # remove all columns from cell_counts on
       
       add_vars <- add_vars[-c(1:3)] # remove first 3 columns (plate, well, Condition)
@@ -109,8 +116,8 @@ data_visualizationServer <- function(id) {
     
     scale_color_brewer_conditions <- reactive({
       ggplot2::scale_color_brewer(palette = input$palette,
-                                 limits = sort(unique(analysis_report_df()$Condition)),
-                                 direction = ifelse(input$reverse == FALSE, 1, -1))
+                                  limits = sort(unique(analysis_report_df()$Condition)),
+                                  direction = ifelse(input$reverse == FALSE, 1, -1))
     })
     
     # comparison_graphs_panel handler -------------------------------------
@@ -151,6 +158,9 @@ data_visualizationServer <- function(id) {
     # single cell data df
     df_single_cell <- reactive({
       
+      # Inputs from App
+      input_features <- input$data_input_feature
+      
       df_single_cell <- if (input$remove_background == TRUE) { # remove background cells/wells
         dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
       } else {
@@ -159,14 +169,34 @@ data_visualizationServer <- function(id) {
       
       df_single_cell <- df_single_cell %>%
         dplyr::mutate(dplyr::across(dplyr::all_of(additional_variables()), factor)) %>% # change add_vars into factors
-        dplyr::filter(.data$SABGal > 0, .data$EdU > 0) %>% # remove negative values
+        dplyr::rowwise() %>%
+        dplyr::filter(all(dplyr::c_across(dplyr::all_of(input_features)) > 0)) %>%
+        dplyr::ungroup() %>%
         dplyr::mutate( # calculate log10 values
-          SABGal_log10 = log10(.data$SABGal),
-          EdU_log10 = log10(.data$EdU)
+          dplyr::across(
+            .cols = all_of(input_features),
+            .fns = list(log10 = ~log10(.x)),
+            .names = "{.col}_log10"
+          )
         )
-      
       # return single cell df
       df_single_cell
+    }) %>%
+      bindCache(input$single_cell_data_df$datapath,
+                input$remove_background)
+    
+    # single cell df
+    single_cell_df <- reactive({
+      
+      # remove background cells/wells
+      df <- if (input$remove_background == TRUE) {
+        dplyr::filter(single_cell_data_df(), !stringr::str_detect(.data$Condition, "_background"))
+      } else {
+        single_cell_data_df()
+      }
+      
+      # return df
+      df
     }) %>%
       bindCache(input$single_cell_data_df$datapath,
                 input$remove_background)
@@ -194,12 +224,20 @@ data_visualizationServer <- function(id) {
     
     # df_thresholds
     df_thresholds <- reactive({
+      # Inputs from App
+      input_features <- input$data_input_feature
+      input_features_threshold <- paste0(input_features, "_threshold_average")
+      
       generate_df_thresholds(data = df(),
+                             input_features = input_features(),
                              additional_variables = additional_variables()
-                             ) %>%
-        dplyr::mutate(
-          SABGal_threshold_average_log10 = log10(.data$SABGal_threshold_average),
-          EdU_threshold_average_log10 = log10(.data$EdU_threshold_average)
+      ) %>%
+        dplyr::mutate( # calculate log10 threshold values
+          dplyr::across(
+            .cols = dplyr::all_of(input_features_threshold),
+            .fns = list(log10 = ~log10(.x)),
+            .names = "{.col}_log10"
+          )
         )
     })
     
@@ -218,31 +256,30 @@ data_visualizationServer <- function(id) {
         dim = c("width", "height",
                 "width_comparison", "height_comparison",
                 "width_percentages", "height_percentages"),
-        version = c("72")) %>%
-          dplyr::mutate(value = dplyr::case_when(
-            dim == "width" ~ ifelse(length(additional_variables()) > 0,
-                                   300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-                                   600),
-            dim == "height" ~ ifelse(length(additional_variables()) > 1,
-                                    100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
-                                    350),
-            dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
-            dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
-                                               100 + 250 * length(unique(df()[[other_add_var()]])),
-                                               350),
-            dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
-                                               300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
-                                               600),
-            dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
-                                                60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
-                                                60 * length(unique(df()$Condition)))
-          ))
-      
+        version = c("72"))  %>%
+        dplyr::mutate(value = dplyr::case_when(
+          dim == "width" ~ ifelse(length(additional_variables()) > 0,
+                                  300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+                                  600),
+          dim == "height" ~ ifelse(length(additional_variables()) > 1,
+                                   100 + 250 * length(unique(df()[[ additional_variables()[2] ]])),
+                                   350),
+          dim == "width_comparison" ~ 300 + 300 * length(unique(df()$Condition)),
+          dim == "height_comparison" ~ ifelse(length(other_add_var()) > 0,
+                                              100 + 250 * length(unique(df()[[other_add_var()]])),
+                                              350),
+          dim == "width_percentages" ~ ifelse(length(additional_variables()) > 0,
+                                              300 + 300 * length(unique(df()[[ additional_variables()[1] ]])),
+                                              600),
+          dim == "height_percentages" ~ ifelse(length(other_add_var()) > 0,
+                                               60 * length(unique(df()$Condition)) * length(unique(df()[[ additional_variables()[2] ]])),
+                                               60 * length(unique(df()$Condition)))
+        ))
+
       # create duplicate df with values adjusted based on dpi
       df_duplicate <- df %>%
         dplyr::mutate(version = "dpi_adj",
                       value = .data$value * dpi()/72)
-      
       # merge dfs
       df <- dplyr::bind_rows(df, df_duplicate)
       
@@ -253,23 +290,23 @@ data_visualizationServer <- function(id) {
     
     # Plot example graphs -----------------------------------------------------
     
-    # well percentages
     well_percentages <- reactive({
       plot <- plot_well_percentages(data = df(),
-                            add_vars = additional_variables(),
-                            scale_fill_brewer = scale_fill_brewer_conditions())
+                                    input_features = input_features(),
+                                    add_vars = additional_variables(),
+                                    scale_fill_brewer = scale_fill_brewer_conditions())
       plot +
         ggplot2_theme()
     })
-    
+
     output$example_graph <- renderPlot({
       well_percentages()
     },
-    width = function() {get_dim(dims_plot(), "width", "72")},
-    height = function() {get_dim(dims_plot(), "height", "72")},
+    width = function() {as.numeric(get_dim(dims_plot(), "width", "72"))},
+    height = function() {as.numeric(get_dim(dims_plot(), "height", "72"))},
     res = 72)
     # %>% # COULDN'T CACHE
-          # Caching forces to use sizePolicy() to controls plot dims, and it does not correctly update plot dims when reactive vars cahnge
+    # Caching forces to use sizePolicy() to controls plot dims, and it does not correctly update plot dims when reactive vars cahnge
     #  bindCache(
     #    sizePolicy = sizeGrowthRatio( # controls width and height in cached plots
     #      width = default_width(), ### causes WARNING ###
@@ -283,9 +320,10 @@ data_visualizationServer <- function(id) {
     # well percentages comparison
     well_percentages_comparison <- reactive({
       plot <- plot_well_percentages_comparison(data = df(),
-                                       add_vars = additional_variables(),
-                                       comparison_var = input$select_comparison_variable,
-                                       other_add_var = other_add_var())
+                                               input_features = input_features(),
+                                               add_vars = additional_variables(),
+                                               comparison_var = input$select_comparison_variable,
+                                               other_add_var = other_add_var())
       plot +
         ggplot2_theme()
     })
@@ -298,7 +336,7 @@ data_visualizationServer <- function(id) {
     res = 72
     )
     # %>% # COULDN'T CACHE
-          # Caching forces to use sizePolicy() to controls plot dims, and it does not correctly update plot dims when reactive vars cahnge
+    # Caching forces to use sizePolicy() to controls plot dims, and it does not correctly update plot dims when reactive vars cahnge
     #  bindCache( 
     #    sizePolicy = sizeGrowthRatio(width = default_width_comparison(), ### TO FIX ### input$remove_background changes don't update width
     #                                 height = default_height_comparison(),
@@ -325,19 +363,22 @@ data_visualizationServer <- function(id) {
       # 2D plots  -----------------------------------------------------------
       
       # single cell staining
-      single_cell_SABGal_EdU_staining <- plot_single_cell_SABGal_EdU_staining(data = df_single_cell(),
-                                                                              data_thresholds = df_thresholds(),
-                                                                              additional_variables = additional_variables(),
-                                                                              scale_color_brewer = scale_color_brewer_conditions())
+      single_cell_staining <- plot_single_cell_staining(data = df_single_cell(),
+                                                        input_features = input_features(),
+                                                        data_thresholds = df_thresholds(),
+                                                        additional_variables = additional_variables(),
+                                                        scale_color_brewer = scale_color_brewer_conditions())
       
       # median staining
-      median_SABGal_EdU_staining <- plot_median_SABGal_EdU_staining(df(),
-                                                                    df_thresholds(),
-                                                                    additional_variables = additional_variables(),
-                                                                    scale_fill_brewer = scale_fill_brewer_conditions())
+      median_staining <- plot_median_staining(df(),
+                                              input_features = input_features(),
+                                              df_thresholds(),
+                                              additional_variables = additional_variables(),
+                                              scale_fill_brewer = scale_fill_brewer_conditions())
       
       # percentages
       percentages <- plot_percentages(df(),
+                                      input_features = input_features(),
                                       additional_variables = additional_variables(),
                                       size_axis_text = input$size_axis_text)
       
@@ -345,15 +386,30 @@ data_visualizationServer <- function(id) {
       well_percentages <- well_percentages()
       
       # nuclear area distribution
+      nuclear_area_distribution <- plot_morphological_feature_distribution(single_cell_df(),
+                                                          morphological_feature = input$morph_data_input_feature,
+                                                          additional_variables = additional_variables(),
+                                                          scale_fill_brewer = scale_fill_brewer_conditions())
       
       # median nuclear area
+      median_nuclear_area <- plot_median_nuclear_area(df(),
+                                                      morphological_feature = input$morph_data_input_feature,
+                                                      additional_variables = additional_variables(),
+                                                      scale_fill_brewer = scale_fill_brewer_conditions())
       
-      # fold change median SABGal
+      # fold change median for morpohlogical features
+      fold_change_median_morphological <- plot_median_fold_change_morphological(df(),
+                                                                  morphological_feature = input$morph_data_input_feature,
+                                                                  additional_variables = additional_variables(),
+                                                                  scale_fill_brewer = scale_fill_brewer_conditions())
       
-      # fold change median EdU
-      
-      # fold change median Nuclear Area
-      
+      # fold change median for features
+      fold_change_median_stains <- plot_median_fold_change_stains(df(),
+                                                                  input_features = input_features(),
+                                                                  additional_variables = additional_variables(),
+                                                                  scale_fill_brewer = scale_fill_brewer_conditions(),
+                                                                  scale_color_brewer = scale_color_brewer_conditions())
+    
       # 3D plots  -----------------------------------------------------------
       
       # SABGal+ and EdU+ percentages plus median Nuclear Area
@@ -368,10 +424,11 @@ data_visualizationServer <- function(id) {
         # Cell count percentages
         
         # median staining comparison
-        median_SABGal_EdU_staining_comparison <- plot_median_SABGal_EdU_staining_comparison(data = df(),
-                                                                                            add_vars = additional_variables(),
-                                                                                            comparison_var = input$select_comparison_variable,
-                                                                                            other_add_var = other_add_var())
+        median_staining_comparison <- plot_median_staining_comparison(data = df(),
+                                                                      input_features = input_features(),
+                                                                      add_vars = additional_variables(),
+                                                                      comparison_var = input$select_comparison_variable,
+                                                                      other_add_var = other_add_var())
         
         # well percentages comparison
         well_percentages_comparison <- well_percentages_comparison()
@@ -379,13 +436,17 @@ data_visualizationServer <- function(id) {
       }
       
       # Return plot list  -----------------------------------------------------------
-      list_plots <- list(single_cell_SABGal_EdU_staining = single_cell_SABGal_EdU_staining,
+      list_plots <- list(single_cell_staining = single_cell_staining,
                          percentages = percentages,
-                         median_SABGal_EdU_staining = median_SABGal_EdU_staining,
-                         well_percentages = well_percentages)
+                         median_staining = median_staining,
+                         well_percentages = well_percentages,
+                         nuclear_area_distribution = nuclear_area_distribution,
+                         median_nuclear_area = median_nuclear_area,
+                         fold_change_median_morphological = fold_change_median_morphological,
+                         fold_change_median_stains = fold_change_median_stains)
       
       if (input$generate_comparison_graphs == TRUE) {
-        list_plots_comparison <- list(median_SABGal_EdU_staining_comparison = median_SABGal_EdU_staining_comparison,
+        list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
                                       well_percentages_comparison = well_percentages_comparison)
         
         list_plots <- c(list_plots, list_plots_comparison)
@@ -421,11 +482,11 @@ data_visualizationServer <- function(id) {
         dir.create(temp_directory)
         
         # single cell SABGal EdU
-        grDevices::png(file.path(temp_directory, "single_cell_SABGal_EdU_staining.png"),
+        grDevices::png(file.path(temp_directory, "single_cell_staining.png"),
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$single_cell_SABGal_EdU_staining)
+        print(graphs()$single_cell_staining)
         grDevices::dev.off()
         
         # percentages
@@ -436,12 +497,12 @@ data_visualizationServer <- function(id) {
         print(graphs()$percentages)
         grDevices::dev.off()
         
-        # median_SABGal_EdU_staining
-        grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining.png"),
+        # median_staining
+        grDevices::png(file.path(temp_directory, "median_staining.png"),
                        width = get_dim(dims_plot(), "width", "dpi_adj"),
                        height = get_dim(dims_plot(), "height", "dpi_adj"),
                        res = input$dpi)
-        print(graphs()$median_SABGal_EdU_staining)
+        print(graphs()$median_staining)
         grDevices::dev.off()
         
         # well percentages
@@ -452,15 +513,47 @@ data_visualizationServer <- function(id) {
         print(graphs()$well_percentages)
         grDevices::dev.off()
         
+        # nuclear area
+        grDevices::png(file.path(temp_directory, "nuclear_area_distribution.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$nuclear_area_distribution)
+        grDevices::dev.off()
+        
+        # median nuclear area
+        grDevices::png(file.path(temp_directory, "median_nuclear_area.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_nuclear_area)
+        grDevices::dev.off()
+        
+        # median fold change
+        grDevices::png(file.path(temp_directory, "fold_change_median_morphological.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_morphological)
+        grDevices::dev.off()
+        
+        # fold_change_median_stains
+        grDevices::png(file.path(temp_directory, "fold_change_median_stains.png"),
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_stains)
+        grDevices::dev.off()
+        
         # Comparison plots
         if (input$generate_comparison_graphs == TRUE) {
           
           # median SABGal EdU staining comparison
-          grDevices::png(file.path(temp_directory, "median_SABGal_EdU_staining_comparison.png"),
+          grDevices::png(file.path(temp_directory, "median_staining_comparison.png"),
                          width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
                          height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
                          res = input$dpi)
-          print(graphs()$median_SABGal_EdU_staining_comparison)
+          print(graphs()$median_staining_comparison)
           grDevices::dev.off()
           
           # well percentages comparison
@@ -486,25 +579,117 @@ data_visualizationServer <- function(id) {
     
     # Render and download buttons for all graphs -----------------------------------------------------------
     
-    # single cell SABGal EdU
-    output$single_cell_SABGal_EdU_staining <- renderPlot({ # plot
-      graphs()$single_cell_SABGal_EdU_staining
+    # fold_change_median_stains
+    output$fold_change_median_stains <- renderPlot({ # plot
+      graphs()$fold_change_median_stains
     },
     width = function() {get_dim(dims_plot(), "width", "72")},
     height = function() {get_dim(dims_plot(), "height", "72")},
     res = 72) %>%
       bindEvent(input$generate_graphs)
     
-    output$download_single_cell_SABGal_EdU_staining <- downloadHandler( # download button
+    output$download_fold_change_median_stains <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_single_cell_SABGal_EdU_staining", ".png")
+        paste0("fold_change_median_stains", ".png")
       },
       content = function(file) {
         grDevices::png(file,
-            width = get_dim(dims_plot(), "width", "dpi_adj"),
-            height = get_dim(dims_plot(), "height", "dpi_adj"),
-            res = input$dpi)
-        print(graphs()$single_cell_SABGal_EdU_staining)
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_stains)
+        grDevices::dev.off()
+      }
+    )
+    
+    # fold_change_median_morphological
+    output$fold_change_median_morphological <- renderPlot({ # plot
+      graphs()$fold_change_median_morphological
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_fold_change_median_morphological <- downloadHandler( # download button
+      filename = function() {
+        paste0("fold_change_median_morphological", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$fold_change_median_morphological)
+        grDevices::dev.off()
+      }
+    )
+    
+    # median_nuclear_area
+    output$median_nuclear_area <- renderPlot({ # plot
+      graphs()$median_nuclear_area
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_median_nuclear_area <- downloadHandler( # download button
+      filename = function() {
+        paste0("median_nuclear_area", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_nuclear_area)
+        grDevices::dev.off()
+      }
+    )
+    
+    # nuclear_area_distribution
+    output$nuclear_area_distribution <- renderPlot({ # plot
+      graphs()$nuclear_area_distribution
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_nuclear_area_distribution <- downloadHandler( # download button
+      filename = function() {
+        paste0("nuclear_area_distribution", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$nuclear_area_distribution)
+        grDevices::dev.off()
+      }
+    )
+    
+    # single cell stains
+    output$single_cell_staining <- renderPlot({ # plot
+      graphs()$single_cell_staining
+    },
+    width = function() {get_dim(dims_plot(), "width", "72")},
+    height = function() {get_dim(dims_plot(), "height", "72")},
+    res = 72) %>%
+      bindEvent(input$generate_graphs)
+    
+    output$download_single_cell_staining <- downloadHandler( # download button
+      filename = function() {
+        paste0(Sys.Date(), "_single_cell_staining", ".png")
+      },
+      content = function(file) {
+        grDevices::png(file,
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$single_cell_staining)
         grDevices::dev.off()
       }
     )
@@ -524,33 +709,33 @@ data_visualizationServer <- function(id) {
       },
       content = function(file) {
         grDevices::png(file,
-            width = get_dim(dims_plot(), "width_percentages", "dpi_adj"),
-            height = get_dim(dims_plot(), "height_percentages", "dpi_adj"),
-            res = input$dpi)
+                       width = get_dim(dims_plot(), "width_percentages", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height_percentages", "dpi_adj"),
+                       res = input$dpi)
         print(graphs()$percentages)
         grDevices::dev.off()
       }
     )
     
-    # median_SABGal_EdU_staining
-    output$median_SABGal_EdU_staining <- renderPlot({ # plot
-      graphs()$median_SABGal_EdU_staining
+    # median_staining
+    output$median_staining <- renderPlot({ # plot
+      graphs()$median_staining
     },
     width = function() {get_dim(dims_plot(), "width", "72")},
     height = function() {get_dim(dims_plot(), "height", "72")},
     res = 72) %>%
       bindEvent(input$generate_graphs)
     
-    output$download_median_SABGal_EdU_staining <- downloadHandler( # download button
+    output$download_median_staining <- downloadHandler( # download button
       filename = function() {
-        paste0(Sys.Date(), "_median_SABGal_EdU_staining",  ".png")
+        paste0(Sys.Date(), "_median_staining",  ".png")
       },
       content = function(file) {
         grDevices::png(file,
-            width = get_dim(dims_plot(), "width", "dpi_adj"),
-            height = get_dim(dims_plot(), "height", "dpi_adj"),
-            res = input$dpi)
-        print(graphs()$median_SABGal_EdU_staining)
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
+        print(graphs()$median_staining)
         grDevices::dev.off()
       }
     )
@@ -570,9 +755,9 @@ data_visualizationServer <- function(id) {
       },
       content = function(file) {
         grDevices::png(file,
-            width = get_dim(dims_plot(), "width", "dpi_adj"),
-            height = get_dim(dims_plot(), "height", "dpi_adj"),
-            res = input$dpi)
+                       width = get_dim(dims_plot(), "width", "dpi_adj"),
+                       height = get_dim(dims_plot(), "height", "dpi_adj"),
+                       res = input$dpi)
         print(graphs()$well_percentages)
         grDevices::dev.off()
       }
@@ -582,25 +767,25 @@ data_visualizationServer <- function(id) {
     observe({
       if (input$generate_comparison_graphs == TRUE) {
         
-        # median SABGal EdU staining comparison
-        output$median_SABGal_EdU_staining_comparison <- renderPlot({ # plot
-          graphs()$median_SABGal_EdU_staining_comparison
+        # median staining comparison
+        output$median_staining_comparison <- renderPlot({ # plot
+          graphs()$median_staining_comparison
         },
         width = function() {get_dim(dims_plot(), "width_comparison", "72")},
         height = function() {get_dim(dims_plot(), "height_comparison", "72")},
         res = 72
         )
         
-        output$download_median_SABGal_EdU_staining_comparison <- downloadHandler( # download
+        output$download_median_staining_comparison <- downloadHandler( # download
           filename = function() {
-            paste0(Sys.Date(), "_median_SABGal_EdU_staining_comparison",  ".png")
+            paste0(Sys.Date(), "_median_staining_comparison",  ".png")
           },
           content = function(file) {
             grDevices::png(file,
-                width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
-                height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
-                res = input$dpi)
-            print(graphs()$median_SABGal_EdU_staining_comparison)
+                           width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
+                           height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
+                           res = input$dpi)
+            print(graphs()$median_staining_comparison)
             grDevices::dev.off()
           }
         )
@@ -620,9 +805,9 @@ data_visualizationServer <- function(id) {
           },
           content = function(file) {
             grDevices::png(file,
-                width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
-                height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
-                res = input$dpi)
+                           width = get_dim(dims_plot(), "width_comparison", "dpi_adj"),
+                           height = get_dim(dims_plot(), "height_comparison", "dpi_adj"),
+                           res = input$dpi)
             print(graphs()$well_percentages_comparison)
             grDevices::dev.off()
           }
@@ -631,7 +816,7 @@ data_visualizationServer <- function(id) {
       }
     }) %>%
       bindEvent(input$generate_comparison_graphs)
-      
+    
     # Comparison graphs handler -----------------------------------------------------------
     shinyjs::hide("comparison_graphs") # hide by default
     
