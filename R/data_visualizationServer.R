@@ -415,6 +415,11 @@ data_visualizationServer <- function(id) {
       # SABGal+ and EdU+ percentages plus median Nuclear Area
       
       # median fold changes
+      # three_dim_fold_change_median_stains <- plot_3d_median_fold_change_stains(df(),
+      #                                                             input_features = input_features(),
+      #                                                             additional_variables = additional_variables(),
+      #                                                             scale_fill_brewer = scale_fill_brewer_conditions(),
+      #                                                             scale_color_brewer = scale_color_brewer_conditions())
       
       # Comparison plots  -----------------------------------------------------------
       
@@ -444,6 +449,7 @@ data_visualizationServer <- function(id) {
                          median_nuclear_area = median_nuclear_area,
                          fold_change_median_morphological = fold_change_median_morphological,
                          fold_change_median_stains = fold_change_median_stains)
+                         # three_dim_fold_change_median_stains = three_dim_fold_change_median_stains)
       
       if (input$generate_comparison_graphs == TRUE) {
         list_plots_comparison <- list(median_staining_comparison = median_staining_comparison,
@@ -545,6 +551,14 @@ data_visualizationServer <- function(id) {
         print(graphs()$fold_change_median_stains)
         grDevices::dev.off()
         
+        # three_dimfold_change_median_stains
+        # grDevices::png(file.path(temp_directory, "three_dim_fold_change_median_stains"),
+        #                width = get_dim(dims_plot(), "width", "dpi_adj"),
+        #                height = get_dim(dims_plot(), "height", "dpi_adj"),
+        #                res = input$dpi)
+        # print(graphs()$three_dim_fold_change_median_stains)
+        # grDevices::dev.off()
+        
         # Comparison plots
         if (input$generate_comparison_graphs == TRUE) {
           
@@ -578,6 +592,30 @@ data_visualizationServer <- function(id) {
     )
     
     # Render and download buttons for all graphs -----------------------------------------------------------
+    
+    # # fold_change_median_stains
+    # output$three_dim_fold_change_median_stains <- renderPlot({ # plot
+    # # output$three_dim_fold_change_median_stains <- renderRglwidget({
+    #   graphs()$three_dim_fold_change_median_stains
+    # },
+    # width = function() {get_dim(dims_plot(), "width", "72")},
+    # height = function() {get_dim(dims_plot(), "height", "72")},
+    # res = 72) %>%
+    #   bindEvent(input$generate_graphs)
+    # 
+    # output$download_three_dim_fold_change_median_stains <- downloadHandler( # download button
+    #   filename = function() {
+    #     paste0("three_dim_fold_change_median_stains", ".png")
+    #   },
+    #   content = function(file) {
+    #     grDevices::png(file,
+    #                    width = get_dim(dims_plot(), "width", "dpi_adj"),
+    #                    height = get_dim(dims_plot(), "height", "dpi_adj"),
+    #                    res = input$dpi)
+    #     print(graphs()$three_dim_fold_change_median_stains)
+    #     grDevices::dev.off()
+    #   }
+    # )
     
     # fold_change_median_stains
     output$fold_change_median_stains <- renderPlot({ # plot

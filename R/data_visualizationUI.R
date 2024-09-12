@@ -288,6 +288,10 @@ data_visualizationUI <- function(id) {
                  downloadButton(NS(id, "download_fold_change_median_stains"), label = "Download graph above"),
                  br(), hr(),
                  
+                 # plotOutput(NS(id, "three_dim_fold_change_median_stains")),
+                 # downloadButton(NS(id, "download_three_dim_fold_change_median_stains"), label = "Download graph above"),
+                 # br(), hr(),
+                 
           ),
           div(id = NS(id)("comparison_graphs"),
               column(12, offset = 0, align = "center",
